@@ -4,3 +4,4 @@ go-basic.obo
 goa_uniprot_all.gaf
 goa_uniprot_all.gaf.gz
 .ipynb_checkpoints/similarty_metrics-checkpoint.ipynb
+.Rproj.user
