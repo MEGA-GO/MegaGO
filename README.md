@@ -69,7 +69,7 @@ where:
  
 To calculate the similarity of two sets of terms, the best match average (BMA)<sup>[1](#myfootnote1)</sup> is used.
 
-<img src="https://latex.codecogs.com/gif.latex?SIM_%7BBMA%7D%28g_1%2Cg_2%29%3D%5Cfrac%7B1%7D%7Bm&plus;n%7D*%20%5Cleft%28%20%5Csum_%7B1%3Di%7D%5Em%7B%5Cmax_%7B1%5Cle%20j%5Cle%20n%7D%28sim%28go_%7B1i%7D%2Cgo_%7B2j%7D%29%29%7D&plus;%5Csum_%7B1%3Dj%7D%5En%7B%5Cmax_%7B1%5Cle%20j%5Cle%20n%7D%28sim%28go_%7B1i%7D%2Cgo_%7B2j%7D%29%29%7D%5Cright%29" />
+<img src="https://latex.codecogs.com/gif.latex?SIM_%7BBMA%7D%28g_1%2Cg_2%29%3D%5Cfrac%7B1%7D%7Bm&plus;n%7D*%20%5Cleft%28%20%5Csum_%7B1%3Di%7D%5Em%7B%5Cmax_%7B1%5Cle%20j%5Cle%20n%7D%28sim%28go_%7B1i%7D%2Cgo_%7B2j%7D%29%29%7D&plus;%5Csum_%7B1%3Dj%7D%5En%7B%5Cmax_%7B1%5Cle%20i%5Cle%20m%7D%28sim%28go_%7B1i%7D%2Cgo_%7B2j%7D%29%29%7D%5Cright%29" />
 
 where:
  - *m,n*: number of terms in set *g<sub>i</sub>* and *g<sub>j</sub>*, respectively
