@@ -84,7 +84,7 @@ The relative similarity ranges between 0 and 1.
 | *sim(go<sub>1i</sub>,go<sub>2j</sub>) value*   | Interpretation           |
 |---------|--------------------------|
 | >0.9    | highly similar functions |
-| 0.5-0.7 | functionally related     |
+| 0.3-0.9 | functionally related     |
 | <0.3    | not functionally similar |  
 
 ## License
