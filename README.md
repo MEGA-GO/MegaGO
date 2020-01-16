@@ -53,8 +53,8 @@ Mega-Go useses relevance semantic similarity similarity for GO terms (*s*) (Schl
 
 where:
 
-*l*: the lowest common ancestor.
-*p*: the frequency of the term *t<sub>1</sub>*.
+ - *l*: the lowest common ancestor.
+ - *p*: the frequency of the term *t<sub>1</sub>*.
 
 The frequency of a term *t* is defined as: 
 
@@ -62,9 +62,9 @@ The frequency of a term *t* is defined as:
 
 where:
 
-*c*: children of *t*.
-*N*: a total number of terms in GO corpus.
-*n<sub>t'</sub>*: a number of occurences of a term *t'*.
+ - *c*: children of *t*.
+ - *N*: a total number of terms in GO corpus.
+ - *n<sub>t'</sub>*: a number of occurences of a term *t'*.
 
 ## License
 
