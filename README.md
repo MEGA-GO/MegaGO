@@ -50,22 +50,22 @@ jupyter similarty_metrics.ipynb
 Mega-Go calculates the similarity between GO terms with the relevance semantic similarity (sim<sub>Rel</sub>) metric
 <sup>[1](#myfootnote1)</sup>.
 
-<img src="https://latex.codecogs.com/gif.latex?s(t_1,&space;t_2)&space;=&space;\frac{2\log&space;{&space;(p(l))&space;}&space;}{&space;\log&space;{&space;(t_1)&space;}&space;&plus;&space;\log&space;{&space;(t_2)&space;}&space;}&space;\times&space;(1&space;-&space;p(l))" title="s(t_1, t_2) = \frac{2\log { (p(l)) } }{ \log { (t_1) } + \log { (t_2) } } \times (1 - p(l))" />
+<img src="https://latex.codecogs.com/gif.latex?sim_{rel}(go_1,&space;go_2)&space;=&space;\frac{2\log&space;{&space;(p(l))&space;}&space;}{&space;\log&space;{&space;(go_1)&space;}&space;&plus;&space;\log&space;{&space;(go_2)&space;}&space;}&space;\times&space;(1&space;-&space;p(l))" title="sim_{rel}(go_1, go_2) = \frac{2\log { (p(l)) } }{ \log { (go_1) } + \log { (go_2) } } \times (1 - p(l))" />
 
 where:
 
  - *l*: lowest common ancestor.
- - *p*: frequency of the term *t<sub>1</sub>*.
+ - *p<sub>1</sub>*: frequency of the term *go<sub>1</sub>*.
 
-The frequency of a term *t* is defined as: 
+The frequency of a term *go* is defined as: 
 
-<img src="https://latex.codecogs.com/gif.latex?p(t)&space;=&space;\frac{n_{t'}}{N}&space;|&space;t'&space;\in&space;\left\{t,&space;c&space;\right\}" title="p(t) = \frac{n_{t'}}{N} | t' \in \left\{t, c \right\}" />
+<img src="https://latex.codecogs.com/gif.latex?p(go)&space;=&space;\frac{n_{go'}}{N}&space;|&space;go'&space;\in&space;\left\{go,&space;c&space;\right\}" title="p(go) = \frac{n_{go'}}{N} | go' \in \left\{go, c \right\}" />
 
 where:
 
- - *c*: children of *t*.
+ - *c*: children of *go*.
  - *N*: total number of terms in GO corpus.
- - *n<sub>t'</sub>*: number of occurences of a term *t'* in a reference data set.
+ - *n<sub>go'</sub>*: number of occurences of a term *go'* in a reference data set.
  
 To calculate the similarity of two sets of terms, the best match average (BMA)<sup>[1](#myfootnote1)</sup> is used.
 
