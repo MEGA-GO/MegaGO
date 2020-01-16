@@ -1,4 +1,4 @@
-# Mega-Go
+# Mega-GO
 
 Calculate semantic distance for sets of Gene Ontology terms.
 
@@ -47,7 +47,7 @@ jupyter similarty_metrics.ipynb
 
 ## How does it work?
 
-Mega-Go calculates the similarity between GO terms with the relevance semantic similarity (sim<sub>Rel</sub>) metric
+Mega-GO calculates the similarity between GO terms with the relevance semantic similarity (sim<sub>Rel</sub>) metric
 <sup>[1](#myfootnote1)</sup>.
 
 <img src="https://latex.codecogs.com/gif.latex?sim_{rel}(go_1,&space;go_2)&space;=&space;\frac{2\log&space;{&space;(p(l))&space;}&space;}{&space;\log&space;{&space;(go_1)&space;}&space;&plus;&space;\log&space;{&space;(go_2)&space;}&space;}&space;\times&space;(1&space;-&space;p(l))" title="sim_{rel}(go_1, go_2) = \frac{2\log { (p(l)) } }{ \log { (go_1) } + \log { (go_2) } } \times (1 - p(l))" />
