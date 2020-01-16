@@ -47,14 +47,15 @@ jupyter similarty_metrics.ipynb
 
 ## How does it work?
 
-Mega-Go useses relevance semantic similarity similarity for GO terms (*s*) (Schlicker, A., Domingues, F.S., Rahnenführer, J. et al. A new measure for functional similarity of gene products based on Gene Ontology. BMC Bioinformatics 7, 302 (2006) doi:10.1186/1471-2105-7-302).
+Mega-Go calculates the similarity between GO terms with the relevance semantic similarity (sim<sub>Rel</sub>) metric
+<sup>[1](#myfootnote1)</sup>.
 
 <img src="https://latex.codecogs.com/gif.latex?s(t_1,&space;t_2)&space;=&space;\frac{2\log&space;{&space;(p(l))&space;}&space;}{&space;\log&space;{&space;(t_1)&space;}&space;&plus;&space;\log&space;{&space;(t_2)&space;}&space;}&space;\times&space;(1&space;-&space;p(l))" title="s(t_1, t_2) = \frac{2\log { (p(l)) } }{ \log { (t_1) } + \log { (t_2) } } \times (1 - p(l))" />
 
 where:
 
- - *l*: the lowest common ancestor.
- - *p*: the frequency of the term *t<sub>1</sub>*.
+ - *l*: lowest common ancestor.
+ - *p*: frequency of the term *t<sub>1</sub>*.
 
 The frequency of a term *t* is defined as: 
 
@@ -63,8 +64,18 @@ The frequency of a term *t* is defined as:
 where:
 
  - *c*: children of *t*.
- - *N*: a total number of terms in GO corpus.
- - *n<sub>t'</sub>*: a number of occurences of a term *t'*.
+ - *N*: total number of terms in GO corpus.
+ - *n<sub>t'</sub>*: number of occurences of a term *t'* in a reference data set.
+ 
+To calculate the similarity of two sets of terms, the best match average (BMA)<sup>[1](#myfootnote1)</sup> is used.
+
+<img src="https://latex.codecogs.com/gif.latex?SIM_{BMA}(g_1,g_2)=\frac{1}{m+n}* \left( \sum_{1=i}^m{\max_{1\le j\le n}(sim(go_{1i},go_{2j}))}+\sum_{1=j}^n{\max_{1\le j\le n}(sim(go_{1i},go_{2j}))} \right )" />
+
+where:
+ - *m,n*: number of terms in set *g<sub>i</sub>* and *g<sub>j</sub>*, respectively
+ - *sim(go<sub>1i</sub>,go<sub>2j</sub>)*: similarity between two GO terms
+ 
+<a name="myfootnote1">1</a>:  Schlicker, A., Domingues, F.S., Rahnenführer, J. et al. A new measure for functional similarity of gene products based on Gene Ontology. BMC Bioinformatics 7, 302 (2006) doi:10.1186/1471-2105-7-302
 
 ## License
 
