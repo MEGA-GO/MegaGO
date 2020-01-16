@@ -32,7 +32,7 @@ Clone the repository:
 git clone https://github.com/MEGA-GO/Mega-Go.git
 ```
 
-Download GO ressource data to working dir:
+Download GO resource data to working dir:
 
 ```shell script
 cd Mega-Go
