@@ -77,7 +77,16 @@ where:
  
 <a name="myfootnote1">1</a>:  Schlicker, A., Domingues, F.S., Rahnenführer, J. et al. A new measure for functional similarity of gene products based on Gene Ontology. BMC Bioinformatics 7, 302 (2006) doi:10.1186/1471-2105-7-302
 
+### Interpretation
+
+The relative similarity ranges between 0 and 1. 
+  
+| *sim(go<sub>1i</sub>,go<sub>2j</sub>) value*   | Interpretation           |
+|---------|--------------------------|
+| >0.9    | highly similar functions |
+| 0.5-0.7 | functionally related     |
+| <0.3    | not functionally similar |  
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
-
