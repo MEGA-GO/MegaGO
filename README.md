@@ -18,12 +18,6 @@ wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
 bash Miniconda3-latest-Linux-x86_64.sh
 ```
 
-Install goatools and jupyter:
-
-```shell script
-conda install goatools jupyter
-```
-
 ### Installing
 
 Clone the repository:
@@ -32,17 +26,17 @@ Clone the repository:
 git clone https://github.com/MEGA-GO/Mega-Go.git
 ```
 
-Download GO resource data to working dir:
+Install package:
 
 ```shell script
 cd Mega-Go
-wget http://geneontology.org/ontology/go-basic.obo
+pip install -U .
 ```
 
-Execute notebook:
+Execute example analysis:
 
 ```shell script
-jupyter similarty_metrics.ipynb
+megago testdata/example_input-compare_goa.csv
 ```
 
 ## How does it work?
