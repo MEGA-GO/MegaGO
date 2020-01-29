@@ -1,3 +1,21 @@
 
 .ipynb_checkpoints/similarty_metrics-checkpoint.ipynb
 .Rproj.user
+compare_goa.csv
+GO terms.csv
+go-basic.obo
+goa_uniprot_all.gaf
+goa_uniprot_all.gaf.gz
+tair.gaf
+uniprot-reviewed_yes.tab
+uniprot-sp.tab
+.idea/encodings.xml
+.idea/inspectionProfiles/Project_Default.xml
+.idea/Mega-Go.iml
+.idea/misc.xml
+.idea/modules.xml
+.idea/vcs.xml
+.idea/workspace.xml
+aaa_lin.png
+venv/
+megago/.ipynb_checkpoints/similarty_metrics-checkpoint.ipynb
