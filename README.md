@@ -36,7 +36,7 @@ pip install -U .
 Execute example analysis:
 
 ```shell script
-megago testdata/example_input-compare_goa.csv
+megago functional_tests/testdata/example_input-compare_goa.csv
 ```
 
 ## How does it work?
