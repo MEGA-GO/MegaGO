@@ -83,6 +83,8 @@ def BMA(GO_list1, GO_list2, termcounts, similarity_method=None):
     return (summationSet12 + summationSet21) / (len(GO_list1) + len(GO_list2))
 
 def get_highest_ic_anc(id,termcounts):
+    if (termcounts.get_count(id) > 0):
+        return 0
     gosubdag_r0 = GoSubDag([id], GODAG, prt=None)
     P = gosubdag_r0.rcntobj.go2parents[id]
     max_ic = 0
