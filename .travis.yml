@@ -1,0 +1,21 @@
+sudo: true
+dist: xenial 
+services:
+  - docker
+language: python 
+python:
+  - "3.5"
+
+before_install:
+  - pip3 install cwltool
+  - docker build -t megago .
+
+script:
+  # Both of these same tests, in Docker
+  # Functional tests
+#  - docker run --entrypoint /megago/.travis/unit-test.sh megago
+  # Unit tests
+  - docker run --entrypoint /megago/functional_tests/megago-test.sh megago -p megago -d /megago/functional_tests/testdata -v
+
+  # CWL definition test
+#  - cwltool megago.cwl --fasta_file functional_tests/test_data/two_sequence.fasta
