@@ -149,9 +149,9 @@ def parse_args():
 
 
 def run_comparison(in_file):
-    def process(id, go1, go2, termcounts, godag):
+    def process(id, go1, go2, termcounts, godag, queue):
         BMA_test = BMA(go1, go2, termcounts, godag)
-        print(f"{id}, {BMA_test}")
+        queue.put([id, BMA_test])
 
     start = time.time()
     GO_list1, GO_list2 = read_input(in_file)
@@ -160,23 +160,31 @@ def run_comparison(in_file):
 
     termcounts = TermCounts(godag, associations)
     end = time.time()
-    logging.debug(f"Resource loading took {round(end - start, 1)} s")
-
-    jobs = []
+    logging.debug(f"Resource loading took {round(end - start, 2)} s")
 
     start = time.time()
+    queue = multiprocessing.Queue()
+    jobs = []
 
-    for i in range(0, len(GO_list1)):
+    ids = range(0, len(GO_list1))
+    for i in ids:
         logging.debug(f"Computing similarity for id {i}")
-        p = multiprocessing.Process(target=process, args=(i, GO_list1[i], GO_list2[i], termcounts, godag))
+        p = multiprocessing.Process(target=process, args=(i, GO_list1[i], GO_list2[i], termcounts, godag, queue))
         jobs.append(p)
         p.start()
+
+    return_dict = dict()
+    for _ in jobs:
+        id, sim = queue.get()
+        return_dict[id] = sim
 
     for job in jobs:
         job.join()
 
     end = time.time()
-    logging.debug(f"Similarity calculation took {round(end - start, 1)} s")
+    logging.debug(f"Similarity calculation took {round(end - start, 2)} s")
+    for id in ids:
+        print(f"{id}, {return_dict[id]}")
 
 
 def process_file(options):
