@@ -32,7 +32,7 @@ UNIPROT_ASSOCIATIONS_FILE = os.path.join(DATA_DIR, "associations-uniprot-sp-2020
 
 def read_input(file_path):
     """
-    This function reads a csv with two columns of GO terms, coming from two datasets
+    Read a csv with two columns of GO terms, coming from two datasets
     Returns two lists of GO terms
     """
 
@@ -81,6 +81,7 @@ def BMA(GO_list1, GO_list2, termcounts, similarity_method=None):
             similarity_values.append(Rel_Metric(id2, id1, GODAG, termcounts))
         summationSet21 += max(similarity_values)
     return (summationSet12 + summationSet21) / (len(GO_list1) + len(GO_list2))
+
 
 def get_highest_ic_anc(id,termcounts):
     if (termcounts.get_count(id) > 0):
@@ -166,12 +167,34 @@ def run_comparison(options):
         job.join()
 
     end = time.time()
-    print(str(end - start) + " s")
+    logging.info(f"Execution took {end - start} s")
+
+
+def init_logging(log_filename):
+    """If the log_filename is defined, then
+    initialise the logging facility, and write log statement
+    indicating the program has started, and also write out the
+    command line from sys.argv
+
+    Arguments:
+        log_filename: either None, if logging is not required, or the
+            string name of the log file to write to
+    Result:
+        None
+    """
+    if log_filename is not None:
+        logging.basicConfig(filename=log_filename,
+                            level=logging.DEBUG,
+                            filemode='w',
+                            format='%(asctime)s %(levelname)s - %(message)s',
+                            datefmt="%Y-%m-%dT%H:%M:%S%z")
+        logging.info('program started')
+        logging.info('command line: %s', ' '.join(sys.argv))
 
 
 def main():
     options = parse_args()
-    # init_logging(options.log)
+    init_logging(options.log)
     run_comparison(options)
 
 
