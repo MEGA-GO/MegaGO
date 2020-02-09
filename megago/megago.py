@@ -139,6 +139,7 @@ def parse_args():
                         metavar='LOG_FILE',
                         type=str,
                         help='record program progress in LOG_FILE')
+    parser.add_argument('--verbose', '-v', action='count', default=0)
     parser.add_argument('input_table',
                         metavar='INPUT_TABLE',
                         nargs='?', type=argparse.FileType('r'),
@@ -148,23 +149,26 @@ def parse_args():
 
 
 def run_comparison(in_file):
-    def process(go1, go2, termcounts, godag):
+    def process(id, go1, go2, termcounts, godag):
         BMA_test = BMA(go1, go2, termcounts, godag)
-        print(BMA_test)
+        print(f"{id}, {BMA_test}")
 
+    start = time.time()
     GO_list1, GO_list2 = read_input(in_file)
     godag = GODag(GODAG_FILE_PATH)
     associations = IdToGosReader(UNIPROT_ASSOCIATIONS_FILE_PATH, godag=godag).get_id2gos('all')
 
     termcounts = TermCounts(godag, associations)
+    end = time.time()
+    logging.debug(f"Resource loading took {round(end - start, 1)} s")
 
     jobs = []
 
     start = time.time()
 
     for i in range(0, len(GO_list1)):
-        print(f"Computing {i}")
-        p = multiprocessing.Process(target=process, args=(GO_list1[i], GO_list2[i], termcounts, godag))
+        logging.debug(f"Computing similarity for id {i}")
+        p = multiprocessing.Process(target=process, args=(i, GO_list1[i], GO_list2[i], termcounts, godag))
         jobs.append(p)
         p.start()
 
@@ -172,7 +176,7 @@ def run_comparison(in_file):
         job.join()
 
     end = time.time()
-    logging.info(f"Execution took {round(end - start, 1)} s")
+    logging.debug(f"Similarity calculation took {round(end - start, 1)} s")
 
 
 def process_file(options):
@@ -184,7 +188,7 @@ def process_file(options):
     run_comparison(options.input_table)
 
 
-def init_logging(log_filename):
+def init_logging(log_filename, verbose):
     """Initialise the logging facility, and write log statement
     indicating the program has started, and also write out the
     command line from sys.argv
@@ -192,13 +196,20 @@ def init_logging(log_filename):
     Arguments:
         log_filename: string name of the log file to write to
           or None, if is None, log output will go tto stderr
+        verbose: integer, increase verbosity level. Default
+        level is WARNING, 1->INFO, 2->DEBUG, >=3->NOTSET
     Result:
         None
     """
-    args = {"level": logging.DEBUG,
+    verbosity = 30 - verbose * 10
+    if verbosity < 0:
+        verbosity = 0
+
+    args = {"level": verbosity,
             "filemode": 'w',
             "format": '%(asctime)s %(levelname)s - %(message)s',
             "datefmt": "%Y-%m-%dT%H:%M:%S%z"}
+
     if log_filename is None:
         args["stream"] = sys.stderr
     else:
@@ -211,7 +222,7 @@ def init_logging(log_filename):
 
 def main():
     options = parse_args()
-    init_logging(options.log)
+    init_logging(options.log, options.verbose)
     process_file(options)
 
 
