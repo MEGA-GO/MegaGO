@@ -16,7 +16,7 @@ EXIT_COMMAND_LINE_ERROR = 2
 EXIT_FASTA_FILE_ERROR = 3
 DEFAULT_MIN_LEN = 0
 DEFAULT_VERBOSE = False
-HEADER = 'FILENAME\tNUMSEQ\tTOTAL\tMIN\tAVG\tMAX'
+HEADER = 'ID, SIMILARITY'
 PROGRAM_NAME = "megago"
 DATA_DIR = pkg_resources.resource_filename(__name__, 'resource_data')
 
@@ -125,13 +125,6 @@ def parse_args():
     '''
     description = 'Calculate semantic distance for sets of Gene Ontology terms'
     parser = argparse.ArgumentParser(description=description)
-    # parser.add_argument(
-    #     '--minlen',
-    #     metavar='N',
-    #     type=int,
-    #     default=DEFAULT_MIN_LEN,
-    #     help='Minimum length sequence to include in stats (default {})'.format(
-    #         DEFAULT_MIN_LEN))
     parser.add_argument('--version',
                         action='version',
                         version='%(prog)s ' + PROGRAM_VERSION)
@@ -148,6 +141,37 @@ def parse_args():
     return parser.parse_args()
 
 
+class LogFile(object):
+    """File-like object to log text using the `logging` module."""
+
+    def __init__(self):
+        self.logger = logging.getLogger()
+
+    def write(self, msg, level=logging.DEBUG):
+        msg = msg.strip("\n")
+        self.logger.log(level, msg)
+
+    def flush(self):
+        for handler in self.logger.handlers:
+            handler.flush()
+
+
+class RedirectStdStreams(object):
+    def __init__(self, stdout=None, stderr=None):
+        self._stdout = stdout or sys.stdout
+        self._stderr = stderr or sys.stderr
+
+    def __enter__(self):
+        self.old_stdout, self.old_stderr = sys.stdout, sys.stderr
+        self.old_stdout.flush(); self.old_stderr.flush()
+        sys.stdout, sys.stderr = self._stdout, self._stderr
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self._stdout.flush(); self._stderr.flush()
+        sys.stdout = self.old_stdout
+        sys.stderr = self.old_stderr
+
+
 def run_comparison(in_file):
     def process(id, go1, go2, termcounts, godag, queue):
         BMA_test = BMA(go1, go2, termcounts, godag)
@@ -155,10 +179,14 @@ def run_comparison(in_file):
 
     start = time.time()
     GO_list1, GO_list2 = read_input(in_file)
-    godag = GODag(GODAG_FILE_PATH)
-    associations = IdToGosReader(UNIPROT_ASSOCIATIONS_FILE_PATH, godag=godag).get_id2gos('all')
 
-    termcounts = TermCounts(godag, associations)
+    godag = GODag(GODAG_FILE_PATH, prt=LogFile())
+    with open(os.devnull, 'w') as devnull:
+        with RedirectStdStreams(stdout=devnull):
+            id2go = IdToGosReader(UNIPROT_ASSOCIATIONS_FILE_PATH, godag=godag, prt=LogFile())
+    associations = id2go.get_id2gos('all', prt=LogFile())
+    termcounts = TermCounts(godag, associations, prt=LogFile())
+
     end = time.time()
     logging.debug(f"Resource loading took {round(end - start, 2)} s")
 
@@ -183,8 +211,10 @@ def run_comparison(in_file):
 
     end = time.time()
     logging.debug(f"Similarity calculation took {round(end - start, 2)} s")
+    print(HEADER)
     for id in ids:
         print(f"{id}, {return_dict[id]}")
+    logging.info("Done!")
 
 
 def process_file(options):
