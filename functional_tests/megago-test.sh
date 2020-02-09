@@ -143,10 +143,9 @@ parse_args $@
 # 2. Change to test directory
 cd "$test_data_dir" || exit 1
 # 2. Run tests
-# due to multiprocessing, output is not deterministic -> turned off for now
-#test_stdout_exit "$test_program example_input-compare_goa.csv" example_input-compare_goa.expected 0
+test_stdout_exit "$test_program example_input-compare_goa.csv" example_input-compare_goa.csv.expected 0
 #test_stdout_exit "$test_program empty_file" empty_file.expected 0
-test_exit_status "$test_program example_input-compare_goa.csv > /dev/null 2>&1"  0
+# Test parsing of stdin
 test_exit_status "cat example_input-compare_goa.csv | $test_program > /dev/null 2>&1"  0
 # Test exit status for a bad command line invocation
 test_exit_status "$test_program --this_is_not_a_valid_argument > /dev/null 2>&1" 2
@@ -159,6 +158,6 @@ if [ "$num_errors" -gt 0 ]; then
     echo "$test_program failed $num_errors out of $num_tests tests"
     exit 1
 else
-    echo "$test_program passed all $num_tests successfully"
+    echo "$test_program passed all $num_tests tests successfully"
     exit 0
 fi
