@@ -182,14 +182,18 @@ def init_logging(log_filename):
     Result:
         None
     """
-    if log_filename is not None:
-        logging.basicConfig(filename=log_filename,
-                            level=logging.DEBUG,
-                            filemode='w',
-                            format='%(asctime)s %(levelname)s - %(message)s',
-                            datefmt="%Y-%m-%dT%H:%M:%S%z")
-        logging.info('program started')
-        logging.info('command line: %s', ' '.join(sys.argv))
+    args = {"level": logging.DEBUG,
+            "filemode": 'w',
+            "format": '%(asctime)s %(levelname)s - %(message)s',
+            "datefmt": "%Y-%m-%dT%H:%M:%S%z"}
+    if log_filename is None:
+        args["stream"] = sys.stderr
+    else:
+        args["filename"] = log_filename
+
+    logging.basicConfig(**args)
+    logging.info('program started')
+    logging.info('command line: %s', ' '.join(sys.argv))
 
 
 def main():
