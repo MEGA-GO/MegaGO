@@ -44,7 +44,7 @@ def read_input(in_file):
     for line in in_file:
         if not line.startswith("GO"):  # skip header
             continue
-        GO1, GO2, _ = line.strip().split(",", maxsplit=2)
+        GO1, GO2 = line.strip().split(",", maxsplit=2)[0:2]
 
         # add GO1 to GO_list1
         GO1_sub = list()
