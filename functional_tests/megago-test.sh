@@ -146,12 +146,12 @@ cd "$test_data_dir" || exit 1
 # due to multiprocessing, output is not deterministic -> turned off for now
 #test_stdout_exit "$test_program example_input-compare_goa.csv" example_input-compare_goa.expected 0
 #test_stdout_exit "$test_program empty_file" empty_file.expected 0
-# Test when --minlen filters out ALL sequences (empty result)
 test_exit_status "$test_program example_input-compare_goa.csv > /dev/null 2>&1"  0
+test_exit_status "cat example_input-compare_goa.csv | $test_program > /dev/null 2>&1"  0
 # Test exit status for a bad command line invocation
 test_exit_status "$test_program --this_is_not_a_valid_argument > /dev/null 2>&1" 2
 # Test exit status for a non existent input FASTA file
-test_exit_status "$test_program this_file_does_not_exist.fasta > /dev/null 2>&1" 1
+test_exit_status "$test_program this_file_does_not_exist.fasta > /dev/null 2>&1" 2
 
 
 # 3. End of testing - check if any errors occurrred
