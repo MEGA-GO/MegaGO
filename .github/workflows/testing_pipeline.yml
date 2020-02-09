@@ -1,0 +1,16 @@
+name: testing pipeline
+
+on: [push]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build docker image and run functional tests
+      run: |
+        docker build -t megago .
+        docker run --entrypoint /megago/functional_tests/megago-test.sh megago -p megago -d /megago/functional_tests/testdata -v

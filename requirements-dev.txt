@@ -1,4 +1,4 @@
 # Dependencies, with versions explicitly declared for development and testing
-goatools==0.9
+goatools==0.9.9
 # Packages that are not dependencies but used for building or testing
 pylint
