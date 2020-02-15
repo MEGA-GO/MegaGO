@@ -34,6 +34,8 @@ def read_input(in_file, sep=",", go_sep=";"):
     Read a csv with two columns of GO terms, coming from two datasets
     Arguments:
         in_file: an open file object
+        sep: field separator of input file, default: ','
+        go_sep: separator between individual go terms, default: ';'
     Result:
         two lists of GO terms
     """
