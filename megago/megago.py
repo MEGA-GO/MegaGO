@@ -29,7 +29,7 @@ GODAG_FILE_PATH = os.path.join(DATA_DIR, "go-basic.obo")
 UNIPROT_ASSOCIATIONS_FILE_PATH = os.path.join(DATA_DIR, "associations-uniprot-sp-20200116.tab")
 
 
-def read_input(in_file):
+def read_input(in_file, sep=",", go_sep=";"):
     """
     Read a csv with two columns of GO terms, coming from two datasets
     Arguments:
@@ -38,35 +38,20 @@ def read_input(in_file):
         two lists of GO terms
     """
 
-    GO_list1, GO_list2 = list(), list()
-
-    # with open(file_path, "r", encoding='utf-8-sig') as in_f:  # other files might require other encoding?
+    go_list1, go_list2 = list(), list()
+    is_first_line = True
     for line in in_file:
-        if not line.startswith("GO"):  # skip header
-            continue
-        GO1, GO2 = line.strip().split(",", maxsplit=2)[0:2]
-
-        # add GO1 to GO_list1
-        GO1_sub = list()
-        if ";" in GO1:
-            mGO = GO1.split(";")
-            for GO in mGO:
-                GO1_sub.append(GO)
-        else:
-            GO1_sub.append(GO1)
-        GO_list1.append(GO1_sub)
-
-        # add GO2 to GO_list2
-        GO2_sub = list()
-        if ";" in GO2:
-            mGO = GO2.split(";")
-            for GO in mGO:
-                GO2_sub.append(GO)
-        else:
-            GO2_sub.append(GO2)
-        GO_list2.append(GO2_sub)
-
-    return GO_list1, GO_list2
+        line = line.strip().upper()
+        if is_first_line:
+            is_first_line = False
+            if not line.startswith("GO"):  # skip header
+                logging.debug(f"skipping first line: {line}")
+                continue
+        go_str1, go_str2 = line.split(sep, maxsplit=2)[0:2]
+        for go_str, go_list in zip([go_str1, go_str2], [go_list1, go_list2]):
+            go_sublist = [go.strip() for go in go_str.split(go_sep) if go.strip() != ""]
+            go_list.append(go_sublist)
+    return go_list1, go_list2
 
 
 def BMA(GO_list1, GO_list2, termcounts, godag, similarity_method=None):

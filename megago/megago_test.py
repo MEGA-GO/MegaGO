@@ -33,21 +33,26 @@ GO:0050789,GO:0030155;GO:0031341"""
                      ['GO:0030155', 'GO:0031341']])
         self.do_test(string, expected)
 
-    # def test_second_tool_no_go_terms(self):
-    #     string = """GO:0098581,
-    #     GO:0050789,GO:0030155;GO:0031341"""
-    #     expected = ([['GO:0098581'], ['GO:0050789']],
-    #                 [[],
-    #                  ['GO:0030155', 'GO:0031341']])
-    #     self.do_test(string, expected)
-    #     pass
+    def test_second_tool_no_go_terms(self):
+        string = """GO:0098581,
+GO:0050789,GO:0030155;GO:0031341"""
+        expected = ([['GO:0098581'], ['GO:0050789']],
+                    [[],
+                     ['GO:0030155', 'GO:0031341']])
+        self.do_test(string, expected)
 
-#         def test_first_tool_no_go(self):
-#             string = """set1,set2
-# ,GO:0070279"""
-#             expected = ([['']],
-#                         [['GO:0070279']])
-#             self.do_test(string, expected)
+    def test_first_tool_no_go(self):
+        string = """set1,set2
+,GO:0070279"""
+        expected = ([[]],
+                    [['GO:0070279']])
+        self.do_test(string, expected)
+
+    def test_no_header_first_tool_no_go(self):
+        string = """,GO:0070279"""
+        expected = ([[]],
+                    [['GO:0070279']])
+        self.do_test(string, expected)
 
 
 if __name__ == '__main__':
