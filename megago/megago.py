@@ -47,7 +47,7 @@ def read_input(in_file, sep=",", go_sep=";"):
         if is_first_line:
             is_first_line = False
             if not line.startswith("GO"):  # skip header
-                logging.debug(f"skipping first line: {line}")
+                logging.info(f"first line looks like header, skipping: {line}")
                 continue
         go_str1, go_str2 = line.split(sep, maxsplit=2)[0:2]
         for go_str, go_list in zip([go_str1, go_str2], [go_list1, go_list2]):
@@ -63,12 +63,12 @@ def BMA(GO_list1, GO_list2, termcounts, godag, similarity_method=None):
         similarity_values = []
         for id2 in GO_list2:
             similarity_values.append(Rel_Metric(id1, id2, godag, termcounts))
-        summationSet12 += max(similarity_values)
+        summationSet12 += max(similarity_values + [-1])
     for id2 in GO_list2:
         similarity_values = []
         for id1 in GO_list1:
             similarity_values.append(Rel_Metric(id2, id1, godag, termcounts))
-        summationSet21 += max(similarity_values)
+        summationSet21 += max(similarity_values + [-1])
     return (summationSet12 + summationSet21) / (len(GO_list1) + len(GO_list2))
 
 
@@ -86,8 +86,6 @@ def get_highest_ic_anc(id, termcounts, godag):
 
 
 def Rel_Metric(id1, id2, godag, termcounts):
-    if id1 == '' or id2 == '':
-        return -1
     goterm1 = godag[id1]
     goterm2 = godag[id2]
     if goterm1.namespace == goterm2.namespace:
@@ -101,7 +99,7 @@ def Rel_Metric(id1, id2, godag, termcounts):
         if(info_content2 == 0):
              info_content2 = get_highest_ic_anc(id2, termcounts, godag)
         return (2 * info_content * (1 - freq)) / (info_content1 + info_content2)
-    else:
+    else:    # if goterms are from different GO namespaces (molecular function, cellular component, biological process)
         return -1
 
 
