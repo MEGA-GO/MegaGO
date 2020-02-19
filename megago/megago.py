@@ -11,12 +11,13 @@ import sys
 import logging
 import pkg_resources
 import os
+import re
 
 EXIT_COMMAND_LINE_ERROR = 2
 EXIT_FASTA_FILE_ERROR = 3
 DEFAULT_MIN_LEN = 0
 DEFAULT_VERBOSE = False
-HEADER = 'ID, SIMILARITY'
+HEADER = 'ID,SIMILARITY'
 PROGRAM_NAME = "megago"
 DATA_DIR = pkg_resources.resource_filename(__name__, 'resource_data')
 
@@ -29,31 +30,41 @@ GODAG_FILE_PATH = os.path.join(DATA_DIR, "go-basic.obo")
 UNIPROT_ASSOCIATIONS_FILE_PATH = os.path.join(DATA_DIR, "associations-uniprot-sp-20200116.tab")
 
 
+def is_go_term(string):
+    regex = re.compile(r"^go:\d{7}$", re.IGNORECASE)
+    if regex.match(string):
+        return True
+    else:
+        return False
+
+
 def read_input(in_file, sep=",", go_sep=";"):
     """
-    Read a csv with two columns of GO terms, coming from two datasets
+    Read a csv with three columns: ID, GO terms 1, GO terms 2, coming from two datasets
     Arguments:
         in_file: an open file object
         sep: field separator of input file, default: ','
         go_sep: separator between individual go terms, default: ';'
     Result:
-        two lists of GO terms
+        id_list, two nested lists of GO terms
     """
 
-    go_list1, go_list2 = list(), list()
+    id_list, go_list1, go_list2 = list(), list(), list()
     is_first_line = True
-    for line in in_file:
-        line = line.strip().upper()
+    for raw_line in in_file:
+        line = raw_line.strip()
+        id_str, go_str1, go_str2 = line.split(sep, maxsplit=3)[0:3]
+        for go_str, go_list in zip([go_str1, go_str2], [go_list1, go_list2]):
+            go_sublist = [go.strip() for go in go_str.upper().split(go_sep) if go.strip() != ""]
+            go_list.append(go_sublist)
         if is_first_line:
             is_first_line = False
-            if not line.startswith("GO"):  # skip header
-                logging.info(f"first line looks like header, skipping: {line}")
+            if not any(map(is_go_term, go_list1[0] + go_list2[0])):
+                logging.info(f"first line looks like header, skipping: {raw_line}")
+                go_list1, go_list2 = list(), list()
                 continue
-        go_str1, go_str2 = line.split(sep, maxsplit=2)[0:2]
-        for go_str, go_list in zip([go_str1, go_str2], [go_list1, go_list2]):
-            go_sublist = [go.strip() for go in go_str.split(go_sep) if go.strip() != ""]
-            go_list.append(go_sublist)
-    return go_list1, go_list2
+        id_list.append(id_str.strip())
+    return id_list, go_list1, go_list2
 
 
 def BMA(GO_list1, GO_list2, termcounts, godag, similarity_method=None):
@@ -163,7 +174,7 @@ def run_comparison(in_file):
         queue.put([id, BMA_test])
 
     start = time.time()
-    GO_list1, GO_list2 = read_input(in_file)
+    ids, GO_list1, GO_list2 = read_input(in_file)
 
     godag = GODag(GODAG_FILE_PATH, prt=LogFile())
     with open(os.devnull, 'w') as devnull:
@@ -179,8 +190,8 @@ def run_comparison(in_file):
     queue = multiprocessing.Queue()
     jobs = []
 
-    ids = range(0, len(GO_list1))
-    for i in ids:
+    # ids = range(0, len(GO_list1))
+    for i, _ in enumerate(ids):
         logging.debug(f"Computing similarity for id {i}")
         p = multiprocessing.Process(target=process, args=(i, GO_list1[i], GO_list2[i], termcounts, godag, queue))
         jobs.append(p)
@@ -188,8 +199,8 @@ def run_comparison(in_file):
 
     return_dict = dict()
     for _ in jobs:
-        id, sim = queue.get()
-        return_dict[id] = sim
+        i, sim = queue.get()
+        return_dict[i] = sim
 
     for job in jobs:
         job.join()
@@ -197,8 +208,8 @@ def run_comparison(in_file):
     end = time.time()
     logging.debug(f"Similarity calculation took {round(end - start, 2)} s")
     print(HEADER)
-    for id in ids:
-        print(f"{id}, {return_dict[id]}")
+    for i, id in enumerate(ids):
+        print(f"{id},{return_dict[i]}")
     logging.info("Done!")
 
 
