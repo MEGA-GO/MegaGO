@@ -29,7 +29,7 @@ except pkg_resources.DistributionNotFound:
 
 GODAG_FILE_PATH = os.path.join(DATA_DIR, "go-basic.obo")
 UNIPROT_ASSOCIATIONS_FILE_PATH = os.path.join(DATA_DIR, "associations-uniprot-sp-20200116.tab")
-
+JSON_INDEXED_FILE_PATH = os.path.join(DATA_DIR, "go_freq_uniprot.json")
 
 def read_input(in_file):
     """
@@ -207,7 +207,7 @@ def run_comparison(in_file):
     #     with RedirectStdStreams(stdout=devnull):
     #         id2go = IdToGosReader(UNIPROT_ASSOCIATIONS_FILE_PATH, godag=godag, prt=LogFile())
     # associations = id2go.get_id2gos('all', prt=LogFile())
-    freq_dict = json.load(open('megago/go_freq_uniprot.json'))
+    freq_dict = json.load(open(JSON_INDEXED_FILE_PATH))
 
 
     end = time.time()
