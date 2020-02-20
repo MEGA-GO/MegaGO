@@ -11,6 +11,8 @@ import sys
 import logging
 import pkg_resources
 import os
+import json
+import math
 
 EXIT_COMMAND_LINE_ERROR = 2
 EXIT_FASTA_FILE_ERROR = 3
@@ -69,6 +71,24 @@ def read_input(in_file):
     return GO_list1, GO_list2
 
 
+def get_frequency(go_id, termcounts, godag):
+    go_term = godag[go_id]
+    namespace = go_term.namespace
+    if (namespace == 'molecular_function'):
+        parent_count = termcounts.get('GO:0003674')
+    elif (namespace == 'cellular_component'):
+        parent_count = termcounts.get("GO:0005575")
+    else:
+        parent_count = termcounts.get('GO:0008150')
+
+    return float(termcounts.get(go_id, 0)) / parent_count
+
+def get_ic(go_id,termcounts,godag):
+    freq = get_frequency(go_id,termcounts,godag)
+    if(freq == 0):
+        return 0
+    return 0.0 - math.log(freq)
+
 def BMA(GO_list1, GO_list2, termcounts, godag, similarity_method=None):
     summationSet12 = 0.0
     summationSet21 = 0.0
@@ -86,14 +106,14 @@ def BMA(GO_list1, GO_list2, termcounts, godag, similarity_method=None):
 
 
 def get_highest_ic_anc(id, termcounts, godag):
-    if (termcounts.get_count(id) > 0):
+    if termcounts.get(id, 0) > 0:
         return 0
     gosubdag_r0 = GoSubDag([id], godag, prt=None)
     P = gosubdag_r0.rcntobj.go2parents[id]
     max_ic = 0
     for i in P:
-        ic = get_info_content(i, termcounts)
-        if(max_ic < ic):
+        ic = get_ic(i, termcounts,godag)
+        if (max_ic < ic):
             max_ic = ic
     return max_ic
 
@@ -105,14 +125,16 @@ def Rel_Metric(id1, id2, godag, termcounts):
     goterm2 = godag[id2]
     if goterm1.namespace == goterm2.namespace:
         mica_goid = deepest_common_ancestor([id1, id2], godag)
-        freq = termcounts.get_term_freq(mica_goid)
-        info_content = get_info_content(mica_goid, termcounts)
-        info_content1 = get_info_content(id1, termcounts)
-        info_content2 = get_info_content(id2, termcounts)
-        if(info_content1 == 0):
-             info_content1 = get_highest_ic_anc(id1, termcounts, godag)
-        if(info_content2 == 0):
-             info_content2 = get_highest_ic_anc(id2, termcounts, godag)
+        freq = get_frequency(mica_goid, termcounts,godag)
+        info_content = get_ic(mica_goid, termcounts,godag)
+        info_content1 = get_ic(id1, termcounts,godag)
+        info_content2 = get_ic(id2, termcounts,godag)
+        if info_content1 == 0:
+            info_content1 = get_highest_ic_anc(id1, termcounts,godag)
+        if (info_content2 == 0):
+            info_content2 = get_highest_ic_anc(id2, termcounts,godag)
+        if info_content1 + info_content2 == 0:
+            return 0
         return (2 * info_content * (1 - freq)) / (info_content1 + info_content2)
     else:
         return -1
@@ -173,41 +195,46 @@ class RedirectStdStreams(object):
 
 
 def run_comparison(in_file):
-    def process(id, go1, go2, termcounts, godag, queue):
-        BMA_test = BMA(go1, go2, termcounts, godag)
-        queue.put([id, BMA_test])
+    # def process(id, go1, go2, freq_dict, godag, queue):
+    #     BMA_test = BMA(go1, go2, freq_dict, godag)
+    #     queue.put([id, BMA_test])
 
     start = time.time()
     GO_list1, GO_list2 = read_input(in_file)
 
     godag = GODag(GODAG_FILE_PATH, prt=LogFile())
-    with open(os.devnull, 'w') as devnull:
-        with RedirectStdStreams(stdout=devnull):
-            id2go = IdToGosReader(UNIPROT_ASSOCIATIONS_FILE_PATH, godag=godag, prt=LogFile())
-    associations = id2go.get_id2gos('all', prt=LogFile())
-    termcounts = TermCounts(godag, associations, prt=LogFile())
+    # with open(os.devnull, 'w') as devnull:
+    #     with RedirectStdStreams(stdout=devnull):
+    #         id2go = IdToGosReader(UNIPROT_ASSOCIATIONS_FILE_PATH, godag=godag, prt=LogFile())
+    # associations = id2go.get_id2gos('all', prt=LogFile())
+    freq_dict = json.load(open('megago/go_freq_uniprot.json'))
+
 
     end = time.time()
     logging.debug(f"Resource loading took {round(end - start, 2)} s")
 
     start = time.time()
-    queue = multiprocessing.Queue()
-    jobs = []
+    # queue = multiprocessing.Queue()
+    # jobs = []
 
     ids = range(0, len(GO_list1))
-    for i in ids:
-        logging.debug(f"Computing similarity for id {i}")
-        p = multiprocessing.Process(target=process, args=(i, GO_list1[i], GO_list2[i], termcounts, godag, queue))
-        jobs.append(p)
-        p.start()
-
     return_dict = dict()
-    for _ in jobs:
-        id, sim = queue.get()
-        return_dict[id] = sim
+    for i in ids:
+        BMA_test = BMA(GO_list1[i], GO_list2[i], freq_dict, godag)
+        return_dict[i] = BMA_test
+    # for i in ids:
+    #     logging.debug(f"Computing similarity for id {i}")
+    #     p = multiprocessing.Process(target=process, args=(i, GO_list1[i], GO_list2[i], freq_dict, godag, queue))
+    #     jobs.append(p)
+    #     p.start()
 
-    for job in jobs:
-        job.join()
+    # return_dict = dict()
+    # for _ in jobs:
+    #     id, sim = queue.get()
+    #     return_dict[id] = sim
+    #
+    # for job in jobs:
+    #     job.join()
 
     end = time.time()
     logging.debug(f"Similarity calculation took {round(end - start, 2)} s")

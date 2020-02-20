@@ -1,13 +1,15 @@
 import json
-
+from goatools.anno.idtogos_reader import IdToGosReader
+from goatools.obo_parser import GODag
+from goatools.semantic import TermCounts
 """
 Given UniProt input file "uniprot-reviewed_yes.tab", 
 create nicely intermediate formatted file "uniprot-sp.tab",
 create JSON file with GO frequencies UniProt/SwissProt.
 """
 
-uniprot_download = "uniprot-reviewed_yes.tab"  # default name
-uniprot_formatted = "uniprot-sp.tab"
+uniprot_download = "resource_data/uniprot-reviewed_yes.tab"  # default name
+uniprot_formatted = "resource_data/uniprot-sp.tab"
 
 # format the downloaded uniprot file to uniform template
 with open(uniprot_download, "r") as in_f, open(uniprot_formatted, "w") as out_f:
@@ -50,6 +52,14 @@ with open(uniprot_formatted, "r") as f:
 
         except IndexError:  # no GO term assigned to protein
             pass
+
+
+godag = GODag("resource_data/go-basic.obo")
+associations = IdToGosReader("resource_data/uniprot-sp.tab", godag=godag).get_id2gos('all')
+termcounts = TermCounts(godag, associations)
+go_freq_dict['GO:0003674'] = termcounts.get_count('GO:0003674')
+go_freq_dict['GO:0005575'] = termcounts.get_count('GO:0005575')
+go_freq_dict['GO:0008150'] = termcounts.get_count('GO:0008150')
 
 # write frequency dict to JSON file
 with open('go_freq_uniprot.json', 'w') as json_file:
