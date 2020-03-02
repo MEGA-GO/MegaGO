@@ -21,4 +21,4 @@ jobs:
           pip install -r requirements-dev.txt
           pip install -U .
       - name: Run tests against ${{ matrix.os }}
-        run: python3 functional_tests/megago-test.sh -p megago -d ./functional_tests/testdata
+        run: python3 functional_tests/megago-test.py -p megago -d ./functional_tests/testdata
