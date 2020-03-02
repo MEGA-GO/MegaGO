@@ -102,8 +102,6 @@ python3 - <<EOF
 import pandas as pd
 from io import StringIO
 f_expect = '$expected_output_file'
-print(f"For {f_expect}")
-print(StringIO('''$output'''))
 df1 = pd.read_csv(StringIO('''$output'''))
 df2 = pd.read_csv(f_expect)
 try:
