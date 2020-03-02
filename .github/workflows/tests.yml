@@ -20,7 +20,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
           pip install -U .
+      - name: Set executable permissions for file on *nix-systems
+        if: matrix.os != 'windows-latest'
+        run: chmod +x ./functional_tests/megago-test.sh
       - name: Run tests against ${{ matrix.os }}
-        run: |
-          chmod +x ./functional_tests/megago-test.sh
-          ./functional_tests/megago-test.sh -p megago -d ./functional_tests/testdata
+        run: ./functional_tests/megago-test.sh -p megago -d ./functional_tests/testdata
