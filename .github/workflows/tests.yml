@@ -21,4 +21,8 @@ jobs:
           pip install -r requirements-dev.txt
           pip install -U .
       - name: Run tests against ${{ matrix.os }}
+        if: matrix.os != 'windows-latest'
         run: python3 functional_tests/megago-test.py -p megago -d ./functional_tests/testdata
+      - name: Run tests against ${{ matrix.os }}
+        if: matrix.os == 'windows-latest'
+        run: python functional_tests/megago-test.py -p megago -d ./functional_tests/testdata
