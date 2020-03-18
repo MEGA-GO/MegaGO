@@ -134,7 +134,7 @@ def parse_args():
     parser.add_argument('--plot', dest="plot_file",
                         help="Draw swarm plot of calculated similarities. Filetype is automatically determined based on"
                              " extension (e.g. .png, .svg)",
-                        defaul=None
+                        default=None
                         )
     parser.add_argument('input_table',
                         metavar='INPUT_TABLE',
