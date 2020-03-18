@@ -7,6 +7,8 @@ import multiprocessing
 
 import argparse
 from math import floor
+import numbers
+import seaborn as sns
 import sys
 import logging
 import pkg_resources
@@ -129,6 +131,11 @@ def parse_args():
                         type=str,
                         help='record program progress in LOG_FILE')
     parser.add_argument('--verbose', '-v', action='count', default=0)
+    parser.add_argument('--plot', dest="plot_file",
+                        help="Draw swarm plot of calculated similarities. Filetype is automatically determined based on"
+                             " extension (e.g. .png, .svg)",
+                        defaul=None
+                        )
     parser.add_argument('input_table',
                         metavar='INPUT_TABLE',
                         nargs='?', type=argparse.FileType('r'),
@@ -207,10 +214,23 @@ def run_comparison(in_file):
 
     end = time.time()
     logging.debug(f"Similarity calculation took {round(end - start, 2)} s")
+
     print(HEADER)
+    csv_string = HEADER
     for i, id in enumerate(ids):
-        print(f"{id},{return_dict[i]}")
-    logging.info("Done!")
+        line = f"{id},{return_dict[i]}"
+        print(line)
+        csv_string += "\n" + line
+    return csv_string
+
+
+def plot_similarity(list_similarity_values):
+    l_is_number = [isinstance(x, numbers.Number) for x in list_similarity_values]
+    if not all(l_is_number):
+        raise ValueError(f"List contains non numeric values: {list_similarity_values}")
+    ax = sns.swarmplot(x=list_similarity_values)
+    fig = ax.get_figure()
+    return fig
 
 
 def process_file(options):
@@ -219,7 +239,13 @@ def process_file(options):
     else:
         logging.info("Processing input table file from %s", options.input_table.name)
 
-    run_comparison(options.input_table)
+    csv_table_string = run_comparison(options.input_table)
+    list_similarity_values = []
+    for l in csv_table_string.split("\n")[1:]:
+        list_similarity_values.append(float(l.split(",")[1]))
+    if options.plot_file:
+        figure = plot_similarity(list_similarity_values)
+        figure.savefig(options.plot_file)
 
 
 def init_logging(log_filename, verbose):
@@ -258,6 +284,7 @@ def main():
     options = parse_args()
     init_logging(options.log, options.verbose)
     process_file(options)
+    logging.info("Done!")
 
 
 if __name__ == "__main__":
