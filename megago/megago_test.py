@@ -4,10 +4,11 @@ Unit tests for megago.
 Usage: python -m unittest -v megago_test
 """
 
+import matplotlib
 import unittest
 from io import StringIO
 # pylint: disable=no-name-in-module
-from megago import read_input, is_go_term
+from megago import read_input, is_go_term, plot_similarity
 
 
 class TestIsStringContaingGo(unittest.TestCase):
@@ -88,6 +89,31 @@ id1,,GO:0070279"""
                     [[]],
                     [['GO:0070279']])
         self.do_test(string, expected)
+
+
+class TestPlotSimilarity(unittest.TestCase):
+    '''Unit tests for plot_similarity'''
+
+    def do_test(self, list_similarity_values, expected_exception=None):
+        "Wrapper function for testing plot_similarity"
+        if expected_exception:
+            with self.assertRaises(expected_exception):
+                plot_similarity(list_similarity_values)
+        else:
+            result = plot_similarity(list_similarity_values)
+            self.assertTrue(isinstance(result, matplotlib.figure.Figure))
+
+    def test_single_val(self):
+        lst = [1]
+        self.do_test(lst)
+
+    def test_multi_val(self):
+        lst = [3,5,9.]
+        self.do_test(lst)
+
+    def test_mixed_types(self):
+        lst = [3,"wasd",5]
+        self.do_test(lst, ValueError)
 
 
 if __name__ == '__main__':
