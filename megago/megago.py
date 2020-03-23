@@ -20,6 +20,7 @@ DEFAULT_MIN_LEN = 0
 DEFAULT_VERBOSE = False
 HEADER = 'ID, SIMILARITY'
 PROGRAM_NAME = "megago"
+# DATA_DIR = "D:\\Unipept\\Mega-GO\\megago\\resource_data"
 DATA_DIR = pkg_resources.resource_filename(__name__, 'resource_data')
 
 try:
@@ -194,47 +195,39 @@ class RedirectStdStreams(object):
         sys.stderr = self.old_stderr
 
 
-def run_comparison(in_file):
-    # def process(id, go1, go2, freq_dict, godag, queue):
-    #     BMA_test = BMA(go1, go2, freq_dict, godag)
-    #     queue.put([id, BMA_test])
+def run_process(id, go1, go2, freq_dict, queue):
+    godag = GODag(GODAG_FILE_PATH, prt=LogFile())
+    BMA_test = BMA(go1, go2, freq_dict, godag)
+    queue.put([id, BMA_test])
 
+
+def run_comparison(in_file):
     start = time.time()
     GO_list1, GO_list2 = read_input(in_file)
 
-    godag = GODag(GODAG_FILE_PATH, prt=LogFile())
-    # with open(os.devnull, 'w') as devnull:
-    #     with RedirectStdStreams(stdout=devnull):
-    #         id2go = IdToGosReader(UNIPROT_ASSOCIATIONS_FILE_PATH, godag=godag, prt=LogFile())
-    # associations = id2go.get_id2gos('all', prt=LogFile())
     freq_dict = json.load(open(JSON_INDEXED_FILE_PATH))
-
 
     end = time.time()
     logging.debug(f"Resource loading took {round(end - start, 2)} s")
 
     start = time.time()
-    # queue = multiprocessing.Queue()
-    # jobs = []
+    queue = multiprocessing.Queue()
+    jobs = []
 
     ids = range(0, len(GO_list1))
-    return_dict = dict()
     for i in ids:
-        BMA_test = BMA(GO_list1[i], GO_list2[i], freq_dict, godag)
-        return_dict[i] = BMA_test
-    # for i in ids:
-    #     logging.debug(f"Computing similarity for id {i}")
-    #     p = multiprocessing.Process(target=process, args=(i, GO_list1[i], GO_list2[i], freq_dict, godag, queue))
-    #     jobs.append(p)
-    #     p.start()
+        logging.debug(f"Computing similarity for id {i}")
+        p = multiprocessing.Process(target=run_process, args=(i, GO_list1[i], GO_list2[i], freq_dict, queue))
+        jobs.append(p)
+        p.start()
 
-    # return_dict = dict()
-    # for _ in jobs:
-    #     id, sim = queue.get()
-    #     return_dict[id] = sim
-    #
-    # for job in jobs:
-    #     job.join()
+    return_dict = dict()
+    for _ in jobs:
+        id, sim = queue.get()
+        return_dict[id] = sim
+
+    for job in jobs:
+        job.join()
 
     end = time.time()
     logging.debug(f"Similarity calculation took {round(end - start, 2)} s")
