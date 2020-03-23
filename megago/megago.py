@@ -195,10 +195,11 @@ class RedirectStdStreams(object):
         sys.stderr = self.old_stderr
 
 
-def run_process(id, go1, go2, freq_dict, queue):
+def run_process(ids, go1, go2, freq_dict, queue):
     godag = GODag(GODAG_FILE_PATH, prt=LogFile())
-    BMA_test = BMA(go1, go2, freq_dict, godag)
-    queue.put([id, BMA_test])
+    for id in ids:
+        BMA_test = BMA(go1[id], go2[id], freq_dict, godag)
+        queue.put([id, BMA_test])
 
 
 def run_comparison(in_file):
@@ -214,20 +215,29 @@ def run_comparison(in_file):
     queue = multiprocessing.Queue()
     jobs = []
 
+    cores = multiprocessing.cpu_count()
+    logging.debug(f"Started comparison with {cores} cores / cpu's.");
+
     ids = range(0, len(GO_list1))
-    for i in ids:
-        logging.debug(f"Computing similarity for id {i}")
-        p = multiprocessing.Process(target=run_process, args=(i, GO_list1[i], GO_list2[i], freq_dict, queue))
+    portion_per_core = len(GO_list1) // cores
+    for core in range(cores):
+        logging.debug(f"Started process {core}.")
+        if core == cores - 1:
+            current_ids = ids[core * portion_per_core:]
+        else:
+            current_ids = ids[core * portion_per_core:(core + 1) * portion_per_core]
+
+        p = multiprocessing.Process(target=run_process, args=(current_ids, GO_list1, GO_list2, freq_dict, queue))
         jobs.append(p)
         p.start()
 
-    return_dict = dict()
-    for _ in jobs:
-        id, sim = queue.get()
-        return_dict[id] = sim
-
     for job in jobs:
         job.join()
+
+    return_dict = dict()
+    while not queue.empty():
+        id, sim = queue.get()
+        return_dict[id] = sim
 
     end = time.time()
     logging.debug(f"Similarity calculation took {round(end - start, 2)} s")
