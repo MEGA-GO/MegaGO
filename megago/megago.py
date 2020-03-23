@@ -13,6 +13,7 @@ import pkg_resources
 import os
 import json
 import math
+import platform
 
 EXIT_COMMAND_LINE_ERROR = 2
 EXIT_FASTA_FILE_ERROR = 3
@@ -195,11 +196,13 @@ class RedirectStdStreams(object):
         sys.stderr = self.old_stderr
 
 
-def run_process(ids, go1, go2, freq_dict, queue):
-    godag = GODag(GODAG_FILE_PATH, prt=LogFile())
+def run_process(ids, go1, go2, freq_dict, queue, godag=None):
+    if godag is None:
+        godag = GODag(GODAG_FILE_PATH, prt=LogFile())
     for id in ids:
         BMA_test = BMA(go1[id], go2[id], freq_dict, godag)
         queue.put([id, BMA_test])
+
 
 
 def run_comparison(in_file):
@@ -216,7 +219,10 @@ def run_comparison(in_file):
     jobs = []
 
     cores = multiprocessing.cpu_count()
-    logging.debug(f"Started comparison with {cores} cores / cpu's.");
+    logging.debug(f"Started comparison with {cores} cores / cpu's.")
+
+    if platform.system() == "Linux":
+        godag = GODag(GODAG_FILE_PATH, prt=LogFile())
 
     ids = range(0, len(GO_list1))
     portion_per_core = len(GO_list1) // cores
@@ -227,7 +233,10 @@ def run_comparison(in_file):
         else:
             current_ids = ids[core * portion_per_core:(core + 1) * portion_per_core]
 
-        p = multiprocessing.Process(target=run_process, args=(current_ids, GO_list1, GO_list2, freq_dict, queue))
+        if platform.system() == "Linux":
+            p = multiprocessing.Process(target=run_process, args=(current_ids, GO_list1, GO_list2, freq_dict, queue, godag))
+        else:
+            p = multiprocessing.Process(target=run_process, args=(current_ids, GO_list1, GO_list2, freq_dict, queue))
         jobs.append(p)
         p.start()
 
