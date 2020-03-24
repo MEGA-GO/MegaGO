@@ -91,25 +91,45 @@ function parse_args {
 # ARG3: expected exit status
 function test_stdout_exit {
     let num_tests+=1
-    output=$(eval $1)
-    exit_status=$?
+    cmd=$1
     expected_output_file=$2
     expected_exit_status=$3
-    verbose_message "Testing stdout and exit status: $1"
-    difference=$(diff <(echo "$output") $expected_output_file)
+    verbose_message "Testing stdout and exit status: $cmd"
+    output=$(eval "$cmd")
+    exit_status=$?
+    difference=$(
+python - <<EOF
+import pandas as pd
+from io import StringIO
+f_expect = '$expected_output_file'
+df1 = pd.read_csv(StringIO('''$output'''))
+df2 = pd.read_csv(f_expect)
+try:
+    pd.testing.assert_frame_equal(df1, df2, check_dtype=False)
+except AssertionError as e:
+    print(f"""
+Tables are not equal!
+left:\tecpected output ({f_expect})
+right:\tactual output
+
+File comparison result (first unequal column):
+{e}
+        """)
+EOF
+)
     if [ -n "$difference" ]; then 
         let num_errors+=1
-        echo "Test output failed: $1"
+        echo "Test output failed: $cmd"
         echo "Actual output:"
         echo "$output"
-        expected_output=$(cat $2)
+        expected_output=$(cat "$expected_output_file")
         echo "Expected output:"
         echo "$expected_output"
         echo "Difference:"
         echo "$difference"
     elif [ "$exit_status" -ne "$expected_exit_status" ]; then
         let num_errors+=1
-        echo "Test exit status failed: $1"
+        echo "Test exit status failed: $cmd"
         echo "Actual exit status: $exit_status"
         echo "Expected exit status: $expected_exit_status"
     fi 
@@ -125,10 +145,10 @@ function test_stdout_exit {
 # important
 function test_exit_status {
     let num_tests+=1
+    verbose_message "Testing exit status: $1"
     output=$(eval $1)
     exit_status=$?
     expected_exit_status=$2
-    verbose_message "Testing exit status: $1"
     if [ "$exit_status" -ne "$expected_exit_status" ]; then
         let num_errors+=1
         echo "Test exit status failed: $1"

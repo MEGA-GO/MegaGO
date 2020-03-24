@@ -30,5 +30,8 @@ setup(
     license='LICENSE',
     description=('Calculate semantic distance for sets of Gene Ontology terms'),
     long_description=(LONG_DESCRIPTION),
-    install_requires=["goatools"],
+    install_requires=[
+        "goatools",
+        "seaborn"
+    ],
 )
