@@ -207,7 +207,6 @@ def run_process(ids, go1, go2, freq_dict, queue, godag=None):
         queue.put([id, BMA_test])
 
 
-
 def run_comparison(in_file):
     start = time.time()
     ids, GO_list1, GO_list2 = read_input(in_file)
@@ -227,14 +226,14 @@ def run_comparison(in_file):
     if platform.system() == "Linux":
         godag = GODag(GODAG_FILE_PATH, prt=LogFile())
 
-    ids = range(0, len(GO_list1))
+    numeric_ids = range(0, len(GO_list1))
     portion_per_core = len(GO_list1) // cores
     for core in range(cores):
         logging.debug(f"Started process {core}.")
         if core == cores - 1:
-            current_ids = ids[core * portion_per_core:]
+            current_ids = numeric_ids[core * portion_per_core:]
         else:
-            current_ids = ids[core * portion_per_core:(core + 1) * portion_per_core]
+            current_ids = numeric_ids[core * portion_per_core:(core + 1) * portion_per_core]
 
         if platform.system() == "Linux":
             p = multiprocessing.Process(target=run_process, args=(current_ids, GO_list1, GO_list2, freq_dict, queue, godag))
