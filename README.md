@@ -1,5 +1,7 @@
 # Mega-GO
 
+![](doc/logo.png)
+
 Calculate semantic distance for sets of Gene Ontology terms.
 
 ## Getting Started

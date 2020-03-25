@@ -20,7 +20,9 @@ setup(
     author_email='henning.schiebenhoefer@posteo.de',
     packages=['megago'],
     package_dir={'megago': 'megago'},
-    package_data={'megago': ["resource_data/associations-uniprot-sp-20200116.tab", "resource_data/go-basic.obo"]},
+    package_data={'megago': ["resource_data/associations-uniprot-sp-20200116.tab",
+                             "resource_data/go-basic.obo",
+                             "resource_data/go_freq_uniprot.json"]},
     entry_points={
         'console_scripts': ['megago = megago.megago:main']
     },
@@ -28,5 +30,8 @@ setup(
     license='LICENSE',
     description=('Calculate semantic distance for sets of Gene Ontology terms'),
     long_description=(LONG_DESCRIPTION),
-    install_requires=["goatools"],
+    install_requires=[
+        "goatools",
+        "seaborn"
+    ],
 )
