@@ -24,7 +24,6 @@ DEFAULT_MIN_LEN = 0
 DEFAULT_VERBOSE = False
 HEADER = 'ID,SIMILARITY'
 PROGRAM_NAME = "megago"
-# DATA_DIR = "D:\\Unipept\\Mega-GO\\megago\\resource_data"
 DATA_DIR = pkg_resources.resource_filename(__name__, 'resource_data')
 
 try:
