@@ -121,6 +121,9 @@ def get_highest_ic_anc(id, termcounts, godag):
 
 
 def Rel_Metric(id1, id2, godag, termcounts):
+    if id1 not in godag or id2 not in godag:
+        return -1
+
     goterm1 = godag[id1]
     goterm2 = godag[id2]
     if goterm1.namespace == goterm2.namespace:
@@ -235,12 +238,13 @@ def run_comparison(in_file):
         else:
             current_ids = numeric_ids[core * portion_per_core:(core + 1) * portion_per_core]
 
-        if platform.system() == "Linux":
-            p = multiprocessing.Process(target=run_process, args=(current_ids, GO_list1, GO_list2, freq_dict, queue, godag))
-        else:
-            p = multiprocessing.Process(target=run_process, args=(current_ids, GO_list1, GO_list2, freq_dict, queue))
-        jobs.append(p)
-        p.start()
+        if len(current_ids) > 0:
+            if platform.system() == "Linux":
+                p = multiprocessing.Process(target=run_process, args=(current_ids, GO_list1, GO_list2, freq_dict, queue, godag))
+            else:
+                p = multiprocessing.Process(target=run_process, args=(current_ids, GO_list1, GO_list2, freq_dict, queue))
+            jobs.append(p)
+            p.start()
 
     for job in jobs:
         job.join()
