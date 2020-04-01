@@ -1,7 +1,7 @@
 from goatools.obo_parser import GODag
 from goatools.semantic import deepest_common_ancestor
 from goatools.gosubdag.gosubdag import GoSubDag
-from . import make_GO_freq_json
+from . import make_GO_freq_json, DATA_DIR, JSON_INDEXED_FILE_PATH, uniprot_time_stamp
 import time
 import multiprocessing
 
@@ -23,7 +23,7 @@ DEFAULT_MIN_LEN = 0
 DEFAULT_VERBOSE = False
 HEADER = 'ID,SIMILARITY'
 PROGRAM_NAME = "megago"
-DATA_DIR = pkg_resources.resource_filename(__name__, 'resource_data')
+
 
 try:
     PROGRAM_VERSION = pkg_resources.require(PROGRAM_NAME)[0].version
@@ -31,8 +31,6 @@ except pkg_resources.DistributionNotFound:
     PROGRAM_VERSION = "undefined_version"
 
 GODAG_FILE_PATH = os.path.join(DATA_DIR, "go-basic.obo")
-UNIPROT_ASSOCIATIONS_FILE_PATH = os.path.join(DATA_DIR, "associations-uniprot-sp-20200116.tab")
-JSON_INDEXED_FILE_PATH = os.path.join(DATA_DIR, "go_freq_uniprot.json")
 
 def is_go_term(string):
     regex = re.compile(r"^go:\d{7}$", re.IGNORECASE)
@@ -120,7 +118,7 @@ def get_highest_ic_anc(id, termcounts, godag):
 
 
 def Rel_Metric(id1, id2, godag, termcounts):
-    if id1 not in godag or id2 not in godag:
+    if (id1 not in godag) or (id2 not in godag):
         return -1
 
     goterm1 = godag[id1]
@@ -213,10 +211,14 @@ def run_comparison(in_file):
     start = time.time()
     ids, GO_list1, GO_list2 = read_input(in_file)
 
-    if not os.path.isfile(JSON_INDEXED_FILE_PATH):
+    if not (os.path.isfile(JSON_INDEXED_FILE_PATH)):
         make_GO_freq_json.intialize_termcounts()
 
     freq_dict = json.load(open(JSON_INDEXED_FILE_PATH))
+
+    if freq_dict['db_date'] != uniprot_time_stamp:
+        make_GO_freq_json.intialize_termcounts()
+        freq_dict = json.load(open(JSON_INDEXED_FILE_PATH))
 
     end = time.time()
     logging.debug(f"Resource loading took {round(end - start, 2)} s")
