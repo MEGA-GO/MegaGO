@@ -2,6 +2,7 @@ from goatools.obo_parser import GODag
 from goatools.anno.idtogos_reader import IdToGosReader
 from goatools.semantic import deepest_common_ancestor, get_info_content, TermCounts
 from goatools.gosubdag.gosubdag import GoSubDag
+from make_GO_freq_json import intialize_termcounts
 import time
 import multiprocessing
 
@@ -89,6 +90,7 @@ def get_ic(go_id,termcounts,godag):
     if(freq == 0):
         return 0
     return 0.0 - math.log(freq)
+
 
 def BMA(GO_list1, GO_list2, termcounts, godag, similarity_method=None):
     summationSet12 = 0.0
@@ -212,6 +214,9 @@ def run_process(ids, go1, go2, freq_dict, queue, godag=None):
 def run_comparison(in_file):
     start = time.time()
     ids, GO_list1, GO_list2 = read_input(in_file)
+
+    if not os.path.isfile(JSON_INDEXED_FILE_PATH):
+        intialize_termcounts()
 
     freq_dict = json.load(open(JSON_INDEXED_FILE_PATH))
 

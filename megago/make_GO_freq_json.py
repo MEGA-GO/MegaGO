@@ -2,6 +2,32 @@ import json
 from goatools.anno.idtogos_reader import IdToGosReader
 from goatools.obo_parser import GODag
 from goatools.semantic import TermCounts
+import pkg_resources
+import os
+
+
+
+DATA_DIR = pkg_resources.resource_filename(__name__, 'resource_data')
+JSON_INDEXED_FILE_PATH = os.path.join(DATA_DIR, "go_freq_uniprot.json")
+
+def intialize_termcounts():
+    go_freq_dict = dict()
+    godag = GODag(os.path.join(DATA_DIR,"go-basic.obo"))
+
+    associations = IdToGosReader(os.path.join(DATA_DIR,"uniprot-sp.tab"), godag=godag).get_id2gos('all')
+    termcounts = TermCounts(godag, associations)
+    for i in godag.values():
+        go_freq_dict[i.id] = termcounts.get_count(i.id)
+    # go_freq_dict['GO:0003674'] = termcounts.get_count('GO:0003674')
+    # go_freq_dict['GO:0005575'] = termcounts.get_count('GO:0005575')
+    # go_freq_dict['GO:0008150'] = termcounts.get_count('GO:0008150')
+
+    # write frequency dict to JSON file
+    with open(JSON_INDEXED_FILE_PATH, 'w') as json_file:
+        json.dump(go_freq_dict, json_file)
+
+
+
 """
 Given UniProt input file "uniprot-reviewed_yes.tab", 
 create nicely intermediate formatted file "uniprot-sp.tab",
@@ -25,7 +51,6 @@ create JSON file with GO frequencies UniProt/SwissProt.
 
 
 # create dict for go_terms
-go_freq_dict = dict()
 
 """
 # calculate sha256 checksum of uniprot_file  # a bit overkill?
@@ -53,17 +78,3 @@ with open(uniprot_formatted, "rb") as f:
 #         except IndexError:  # no GO term assigned to protein
 #             pass
 
-
-godag = GODag("resource_data/go-basic.obo")
-
-associations = IdToGosReader("resource_data/uniprot-sp.tab", godag=godag).get_id2gos('all')
-termcounts = TermCounts(godag, associations)
-for i in godag.values():
-    go_freq_dict[i.id] = termcounts.get_count(i.id)
-# go_freq_dict['GO:0003674'] = termcounts.get_count('GO:0003674')
-# go_freq_dict['GO:0005575'] = termcounts.get_count('GO:0005575')
-# go_freq_dict['GO:0008150'] = termcounts.get_count('GO:0008150')
-
-# write frequency dict to JSON file
-with open('go_freq_uniprot.json', 'w') as json_file:
-    json.dump(go_freq_dict, json_file)
