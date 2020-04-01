@@ -4,8 +4,8 @@ set -e
 errors=0
 
 # Run unit tests
-python megago/megago_test.py || {
-    echo "'python python/megago/megago_test.py' failed"
+python -m unittest megago/megago_test.py || {
+    echo "'python -m unittest megago/megago_test.py' failed"
     let errors+=1
 }
 

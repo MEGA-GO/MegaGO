@@ -8,7 +8,7 @@ import matplotlib
 import unittest
 from io import StringIO
 # pylint: disable=no-name-in-module
-from megago import read_input, is_go_term, plot_similarity
+from megago.megago import read_input, is_go_term, plot_similarity
 
 
 class TestIsStringContaingGo(unittest.TestCase):

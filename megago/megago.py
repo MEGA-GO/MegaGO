@@ -1,13 +1,11 @@
 from goatools.obo_parser import GODag
-from goatools.anno.idtogos_reader import IdToGosReader
-from goatools.semantic import deepest_common_ancestor, get_info_content, TermCounts
+from goatools.semantic import deepest_common_ancestor
 from goatools.gosubdag.gosubdag import GoSubDag
-from megago.make_GO_freq_json import intialize_termcounts
+from . import make_GO_freq_json
 import time
 import multiprocessing
 
 import argparse
-from math import floor
 import numbers
 import seaborn as sns
 import sys
@@ -216,7 +214,7 @@ def run_comparison(in_file):
     ids, GO_list1, GO_list2 = read_input(in_file)
 
     if not os.path.isfile(JSON_INDEXED_FILE_PATH):
-        intialize_termcounts()
+        make_GO_freq_json.intialize_termcounts()
 
     freq_dict = json.load(open(JSON_INDEXED_FILE_PATH))
 
