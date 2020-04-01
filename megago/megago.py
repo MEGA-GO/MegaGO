@@ -1,18 +1,20 @@
 from goatools.obo_parser import GODag
-from goatools.anno.idtogos_reader import IdToGosReader
-from goatools.semantic import deepest_common_ancestor, get_info_content, TermCounts
+from goatools.semantic import deepest_common_ancestor
 from goatools.gosubdag.gosubdag import GoSubDag
+from . import make_GO_freq_json, DATA_DIR, JSON_INDEXED_FILE_PATH, uniprot_time_stamp
 import time
 import multiprocessing
 
 import argparse
-from math import floor
 import numbers
 import seaborn as sns
 import sys
 import logging
 import pkg_resources
 import os
+import json
+import math
+import platform
 import re
 
 EXIT_COMMAND_LINE_ERROR = 2
@@ -21,7 +23,7 @@ DEFAULT_MIN_LEN = 0
 DEFAULT_VERBOSE = False
 HEADER = 'ID,SIMILARITY'
 PROGRAM_NAME = "megago"
-DATA_DIR = pkg_resources.resource_filename(__name__, 'resource_data')
+
 
 try:
     PROGRAM_VERSION = pkg_resources.require(PROGRAM_NAME)[0].version
@@ -29,8 +31,6 @@ except pkg_resources.DistributionNotFound:
     PROGRAM_VERSION = "undefined_version"
 
 GODAG_FILE_PATH = os.path.join(DATA_DIR, "go-basic.obo")
-UNIPROT_ASSOCIATIONS_FILE_PATH = os.path.join(DATA_DIR, "associations-uniprot-sp-20200116.tab")
-
 
 def is_go_term(string):
     regex = re.compile(r"^go:\d{7}$", re.IGNORECASE)
@@ -69,6 +69,25 @@ def read_input(in_file, sep=",", go_sep=";"):
     return id_list, go_list1, go_list2
 
 
+def get_frequency(go_id, termcounts, godag):
+    go_term = godag[go_id]
+    namespace = go_term.namespace
+    if (namespace == 'molecular_function'):
+        parent_count = termcounts.get('GO:0003674')
+    elif (namespace == 'cellular_component'):
+        parent_count = termcounts.get("GO:0005575")
+    else:
+        parent_count = termcounts.get('GO:0008150')
+
+    return float(termcounts.get(go_id, 0)) / parent_count
+
+def get_ic(go_id,termcounts,godag):
+    freq = get_frequency(go_id,termcounts,godag)
+    if(freq == 0):
+        return 0
+    return 0.0 - math.log(freq)
+
+
 def BMA(GO_list1, GO_list2, termcounts, godag, similarity_method=None):
     summationSet12 = 0.0
     summationSet21 = 0.0
@@ -86,31 +105,36 @@ def BMA(GO_list1, GO_list2, termcounts, godag, similarity_method=None):
 
 
 def get_highest_ic_anc(id, termcounts, godag):
-    if (termcounts.get_count(id) > 0):
+    if termcounts.get(id, 0) > 0:
         return 0
     gosubdag_r0 = GoSubDag([id], godag, prt=None)
     P = gosubdag_r0.rcntobj.go2parents[id]
     max_ic = 0
     for i in P:
-        ic = get_info_content(i, termcounts)
-        if(max_ic < ic):
+        ic = get_ic(i, termcounts,godag)
+        if (max_ic < ic):
             max_ic = ic
     return max_ic
 
 
 def Rel_Metric(id1, id2, godag, termcounts):
+    if (id1 not in godag) or (id2 not in godag):
+        return -1
+
     goterm1 = godag[id1]
     goterm2 = godag[id2]
     if goterm1.namespace == goterm2.namespace:
         mica_goid = deepest_common_ancestor([id1, id2], godag)
-        freq = termcounts.get_term_freq(mica_goid)
-        info_content = get_info_content(mica_goid, termcounts)
-        info_content1 = get_info_content(id1, termcounts)
-        info_content2 = get_info_content(id2, termcounts)
-        if(info_content1 == 0):
-             info_content1 = get_highest_ic_anc(id1, termcounts, godag)
-        if(info_content2 == 0):
-             info_content2 = get_highest_ic_anc(id2, termcounts, godag)
+        freq = get_frequency(mica_goid, termcounts,godag)
+        info_content = get_ic(mica_goid, termcounts,godag)
+        info_content1 = get_ic(id1, termcounts,godag)
+        info_content2 = get_ic(id2, termcounts,godag)
+        if info_content1 == 0:
+            info_content1 = get_highest_ic_anc(id1, termcounts,godag)
+        if (info_content2 == 0):
+            info_content2 = get_highest_ic_anc(id2, termcounts,godag)
+        if info_content1 + info_content2 == 0:
+            return 0
         return (2 * info_content * (1 - freq)) / (info_content1 + info_content2)
     else:    # if goterms are from different GO namespaces (molecular function, cellular component, biological process)
         return -1
@@ -175,20 +199,26 @@ class RedirectStdStreams(object):
         sys.stderr = self.old_stderr
 
 
-def run_comparison(in_file):
-    def process(id, go1, go2, termcounts, godag, queue):
-        BMA_test = BMA(go1, go2, termcounts, godag)
+def run_process(ids, go1, go2, freq_dict, queue, godag=None):
+    if godag is None:
+        godag = GODag(GODAG_FILE_PATH, prt=LogFile())
+    for id in ids:
+        BMA_test = BMA(go1[id], go2[id], freq_dict, godag)
         queue.put([id, BMA_test])
 
+
+def run_comparison(in_file):
     start = time.time()
     ids, GO_list1, GO_list2 = read_input(in_file)
 
-    godag = GODag(GODAG_FILE_PATH, prt=LogFile())
-    with open(os.devnull, 'w') as devnull:
-        with RedirectStdStreams(stdout=devnull):
-            id2go = IdToGosReader(UNIPROT_ASSOCIATIONS_FILE_PATH, godag=godag, prt=LogFile())
-    associations = id2go.get_id2gos('all', prt=LogFile())
-    termcounts = TermCounts(godag, associations, prt=LogFile())
+    if not (os.path.isfile(JSON_INDEXED_FILE_PATH)):
+        make_GO_freq_json.intialize_termcounts()
+
+    freq_dict = json.load(open(JSON_INDEXED_FILE_PATH))
+
+    if freq_dict['db_date'] != uniprot_time_stamp:
+        make_GO_freq_json.intialize_termcounts()
+        freq_dict = json.load(open(JSON_INDEXED_FILE_PATH))
 
     end = time.time()
     logging.debug(f"Resource loading took {round(end - start, 2)} s")
@@ -197,20 +227,36 @@ def run_comparison(in_file):
     queue = multiprocessing.Queue()
     jobs = []
 
-    # ids = range(0, len(GO_list1))
-    for i, _ in enumerate(ids):
-        logging.debug(f"Computing similarity for id {i}")
-        p = multiprocessing.Process(target=process, args=(i, GO_list1[i], GO_list2[i], termcounts, godag, queue))
-        jobs.append(p)
-        p.start()
+    cores = multiprocessing.cpu_count()
+    logging.debug(f"Started comparison with {cores} cores / cpu's.")
 
-    return_dict = dict()
-    for _ in jobs:
-        i, sim = queue.get()
-        return_dict[i] = sim
+    if platform.system() == "Linux":
+        godag = GODag(GODAG_FILE_PATH, prt=LogFile())
+
+    numeric_ids = range(0, len(GO_list1))
+    portion_per_core = len(GO_list1) // cores
+    for core in range(cores):
+        logging.debug(f"Started process {core}.")
+        if core == cores - 1:
+            current_ids = numeric_ids[core * portion_per_core:]
+        else:
+            current_ids = numeric_ids[core * portion_per_core:(core + 1) * portion_per_core]
+
+        if len(current_ids) > 0:
+            if platform.system() == "Linux":
+                p = multiprocessing.Process(target=run_process, args=(current_ids, GO_list1, GO_list2, freq_dict, queue, godag))
+            else:
+                p = multiprocessing.Process(target=run_process, args=(current_ids, GO_list1, GO_list2, freq_dict, queue))
+            jobs.append(p)
+            p.start()
 
     for job in jobs:
         job.join()
+
+    return_dict = dict()
+    while not queue.empty():
+        id, sim = queue.get()
+        return_dict[id] = sim
 
     end = time.time()
     logging.debug(f"Similarity calculation took {round(end - start, 2)} s")
