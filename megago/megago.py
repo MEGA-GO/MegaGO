@@ -2,7 +2,7 @@ from goatools.obo_parser import GODag
 from goatools.anno.idtogos_reader import IdToGosReader
 from goatools.semantic import deepest_common_ancestor, get_info_content, TermCounts
 from goatools.gosubdag.gosubdag import GoSubDag
-from .make_GO_freq_json import intialize_termcounts
+from megago.make_GO_freq_json import intialize_termcounts
 import time
 import multiprocessing
 
