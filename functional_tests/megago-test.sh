@@ -98,7 +98,7 @@ function test_stdout_exit {
     output=$(eval "$cmd")
     exit_status=$?
     difference=$(
-python - <<EOF
+python3 - <<EOF
 import pandas as pd
 from io import StringIO
 f_expect = '$expected_output_file'
@@ -107,14 +107,12 @@ df2 = pd.read_csv(f_expect)
 try:
     pd.testing.assert_frame_equal(df1, df2, check_dtype=False)
 except AssertionError as e:
-    print(f"""
-Tables are not equal!
-left:\tecpected output ({f_expect})
-right:\tactual output
-
-File comparison result (first unequal column):
-{e}
-        """)
+    print("Tables are not equal!")
+    print(f"left:\texpected output ({f_expect})")
+    print(f"right:\tactual output")
+    print("")
+    print("File comparison result (first unequal column):")
+    print(f"{e}")
 EOF
 )
     if [ -n "$difference" ]; then 
