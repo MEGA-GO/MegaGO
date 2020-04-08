@@ -1,7 +1,7 @@
 from goatools.obo_parser import GODag
 from goatools.semantic import deepest_common_ancestor
 from goatools.gosubdag.gosubdag import GoSubDag
-from . import make_GO_freq_json, DATA_DIR, JSON_INDEXED_FILE_PATH, uniprot_time_stamp
+from . import make_GO_freq_json, DATA_DIR, JSON_INDEXED_FILE_PATH, uniprot_time_stamp, NAN_VALUE
 import time
 import multiprocessing
 
@@ -89,18 +89,20 @@ def get_ic(go_id,termcounts,godag):
 
 
 def BMA(GO_list1, GO_list2, termcounts, godag, similarity_method=None):
+    if similarity_method is None:
+        similarity_method = Rel_Metric
     summationSet12 = 0.0
     summationSet21 = 0.0
     for id1 in GO_list1:
         similarity_values = []
         for id2 in GO_list2:
-            similarity_values.append(Rel_Metric(id1, id2, godag, termcounts))
-        summationSet12 += max(similarity_values + [-1])
+            similarity_values.append(similarity_method(id1, id2, godag, termcounts))
+        summationSet12 += max(similarity_values + [NAN_VALUE])
     for id2 in GO_list2:
         similarity_values = []
         for id1 in GO_list1:
-            similarity_values.append(Rel_Metric(id2, id1, godag, termcounts))
-        summationSet21 += max(similarity_values + [-1])
+            similarity_values.append(similarity_method(id2, id1, godag, termcounts))
+        summationSet21 += max(similarity_values + [NAN_VALUE])
     return (summationSet12 + summationSet21) / (len(GO_list1) + len(GO_list2))
 
 
@@ -119,7 +121,7 @@ def get_highest_ic_anc(id, termcounts, godag):
 
 def Rel_Metric(id1, id2, godag, termcounts):
     if (id1 not in godag) or (id2 not in godag):
-        return -1
+        return NAN_VALUE
 
     goterm1 = godag[id1]
     goterm2 = godag[id2]
@@ -137,7 +139,7 @@ def Rel_Metric(id1, id2, godag, termcounts):
             return 0
         return (2 * info_content * (1 - freq)) / (info_content1 + info_content2)
     else:    # if goterms are from different GO namespaces (molecular function, cellular component, biological process)
-        return -1
+        return NAN_VALUE
 
 
 def parse_args():
