@@ -6,9 +6,9 @@ two levels higher 1,0.166453364022849
 two levels higher 2,0.310497729692692
 two levels higher 3,0.310529265600263
 four levels higher,0
-two unrelated bindings (MF vs BP) 1,-1
-two unrelated bindings (MF vs CC),-1
-two unrelated bindings (MF vs BP) 2,-1
+two unrelated bindings (MF vs BP) 1,nan
+two unrelated bindings (MF vs CC),nan
+two unrelated bindings (MF vs BP) 2,nan
 same level bindings (unrel) 1,0.495875632774122
 same level bindings (unrel) 2,0.378358216243867
 same level bindings (unrel) 3,0.898250923654065
@@ -17,7 +17,7 @@ two children of parent 2,0.964013200991831
 two children of parent (BP),0.368130797982323
 two children of binding VS two other children of binding,0.096992300641682
 two children of biological process VS two other children of biological process,0
-one report; other not (BP),-1
+one report; other not (BP),nan
 report specific; vs specific + parents,0.303819881883554
-one report; other not,-1
+one report; other not,nan
 unrelated (GTPase activity) vs binding (PPB) activity,0
