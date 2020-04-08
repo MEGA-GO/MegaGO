@@ -1,5 +1,5 @@
 # Dependencies, with versions explicitly declared for development and testing
-goatools==0.9.9
+goatools==1.0.3
 seaborn
 # Packages that are not dependencies but used for building or testing
 pandas
