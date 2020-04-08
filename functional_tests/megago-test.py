@@ -93,7 +93,7 @@ def test_stdout_exit(cmd, expected_output_file, expected_exit_status):
     global num_errors
 
     num_tests += 1
-    verbose_message(f"Testing stdout and exit status: $cmd")
+    verbose_message(f"Testing stdout and exit status: {cmd}")
     result = subprocess.run(cmd.split(" "), stdout=subprocess.PIPE)
     output = result.stdout.decode('utf-8')
     exit_status = result.returncode
