@@ -110,7 +110,7 @@ def get_highest_ic_anc(id, termcounts, godag):
     if termcounts.get(id, 0) > 0:
         return 0
     gosubdag_r0 = GoSubDag([id], godag, prt=None)
-    P = gosubdag_r0.rcntobj.go2parents[id]
+    P = gosubdag_r0.rcntobj.go2ancestors[id]
     max_ic = 0
     for i in P:
         ic = get_ic(i, termcounts,godag)
