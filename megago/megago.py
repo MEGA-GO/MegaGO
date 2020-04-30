@@ -1,21 +1,15 @@
-from goatools.obo_parser import GODag
-from goatools.semantic import deepest_common_ancestor
-from goatools.gosubdag.gosubdag import GoSubDag
-from . import make_GO_freq_json, DATA_DIR, JSON_INDEXED_FILE_PATH, uniprot_time_stamp, NAN_VALUE
-import time
-import multiprocessing
-
 import argparse
 import numbers
 import seaborn as sns
 import sys
 import logging
 import pkg_resources
-import os
-import json
-import math
-import platform
 import re
+
+from precompute_highest_ic import get_highest_ic
+from metrics import compute_bma_metric
+from precompute_frequency_counts import get_frequency_counts
+
 
 EXIT_COMMAND_LINE_ERROR = 2
 EXIT_FASTA_FILE_ERROR = 3
@@ -30,25 +24,25 @@ try:
 except pkg_resources.DistributionNotFound:
     PROGRAM_VERSION = "undefined_version"
 
-GODAG_FILE_PATH = os.path.join(DATA_DIR, "go-basic.obo")
 
-def is_go_term(string):
+def is_go_term(candidate):
+    """
+    Checks if a given string could be a valid GO-term identifier. This function only checks if the string satisfies the
+    formatting of a GO-term identifier, not if it actually exists in the ontology!
+    :param candidate: A string for which we should verify if it's a valid GO-identifier.
+    :return: True if the string is indeed a valid identifier, False otherwise.
+    """
     regex = re.compile(r"^go:\d{7}$", re.IGNORECASE)
-    if regex.match(string):
-        return True
-    else:
-        return False
+    return regex.match(candidate)
 
 
 def read_input(in_file, sep=",", go_sep=";"):
     """
     Read a csv with three columns: ID, GO terms 1, GO terms 2, coming from two datasets
-    Arguments:
-        in_file: an open file object
-        sep: field separator of input file, default: ','
-        go_sep: separator between individual go terms, default: ';'
-    Result:
-        id_list, two nested lists of GO terms
+    :param in_file: an open file object
+    :param sep: field separator of input file, default: ','
+    :param go_sep: separator between individual go terms, default: ';'
+    :return: id_list and two nested lists of GO terms
     """
 
     id_list, go_list1, go_list2 = list(), list(), list()
@@ -69,84 +63,11 @@ def read_input(in_file, sep=",", go_sep=";"):
     return id_list, go_list1, go_list2
 
 
-def get_frequency(go_id, termcounts, godag):
-    go_term = godag[go_id]
-    namespace = go_term.namespace
-    if (namespace == 'molecular_function'):
-        parent_count = termcounts.get('GO:0003674')
-    elif (namespace == 'cellular_component'):
-        parent_count = termcounts.get("GO:0005575")
-    else:
-        parent_count = termcounts.get('GO:0008150')
-
-    return float(termcounts.get(go_id, 0)) / parent_count
-
-def get_ic(go_id,termcounts,godag):
-    freq = get_frequency(go_id,termcounts,godag)
-    if(freq == 0):
-        return 0
-    return 0.0 - math.log(freq)
-
-
-def BMA(GO_list1, GO_list2, termcounts, godag, similarity_method=None):
-    if similarity_method is None:
-        similarity_method = Rel_Metric
-    summationSet12 = 0.0
-    summationSet21 = 0.0
-    for id1 in GO_list1:
-        similarity_values = []
-        for id2 in GO_list2:
-            similarity_values.append(similarity_method(id1, id2, godag, termcounts))
-        summationSet12 += max(similarity_values + [NAN_VALUE])
-    for id2 in GO_list2:
-        similarity_values = []
-        for id1 in GO_list1:
-            similarity_values.append(similarity_method(id2, id1, godag, termcounts))
-        summationSet21 += max(similarity_values + [NAN_VALUE])
-    return (summationSet12 + summationSet21) / (len(GO_list1) + len(GO_list2))
-
-
-def get_highest_ic_anc(id, termcounts, godag):
-    if termcounts.get(id, 0) > 0:
-        return 0
-    gosubdag_r0 = GoSubDag([id], godag, prt=None)
-    P = gosubdag_r0.rcntobj.go2ancestors[id]
-    max_ic = 0
-    for i in P:
-        ic = get_ic(i, termcounts,godag)
-        if (max_ic < ic):
-            max_ic = ic
-    return max_ic
-
-
-def Rel_Metric(id1, id2, godag, termcounts):
-    if (id1 not in godag) or (id2 not in godag):
-        return NAN_VALUE
-
-    goterm1 = godag[id1]
-    goterm2 = godag[id2]
-    if goterm1.namespace == goterm2.namespace:
-        mica_goid = deepest_common_ancestor([id1, id2], godag)
-        freq = get_frequency(mica_goid, termcounts,godag)
-        info_content = get_ic(mica_goid, termcounts,godag)
-        info_content1 = get_ic(id1, termcounts,godag)
-        info_content2 = get_ic(id2, termcounts,godag)
-        if info_content1 == 0:
-            info_content1 = get_highest_ic_anc(id1, termcounts,godag)
-        if (info_content2 == 0):
-            info_content2 = get_highest_ic_anc(id2, termcounts,godag)
-        if info_content1 + info_content2 == 0:
-            return 0
-        return (2 * info_content * (1 - freq)) / (info_content1 + info_content2)
-    else:    # if goterms are from different GO namespaces (molecular function, cellular component, biological process)
-        return NAN_VALUE
-
-
 def parse_args():
-    '''Parse command line arguments.
-    Returns Options object with command line argument values as attributes.
-    Will exit the program on a command line error.
-    '''
+    """
+    Parse command line arguments. This function will exit the program on a command line error!
+    :return: Options object with command line argument values as attributes.
+    """
     description = 'Calculate semantic distance for sets of Gene Ontology terms'
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument('--version',
@@ -201,75 +122,32 @@ class RedirectStdStreams(object):
         sys.stderr = self.old_stderr
 
 
-def run_process(ids, go1, go2, freq_dict, queue, godag=None):
-    if godag is None:
-        godag = GODag(GODAG_FILE_PATH, prt=LogFile())
-    for id in ids:
-        BMA_test = BMA(go1[id], go2[id], freq_dict, godag)
-        queue.put([id, BMA_test])
-
-
 def run_comparison(in_file):
-    start = time.time()
-    ids, GO_list1, GO_list2 = read_input(in_file)
+    """
+    Compute the pairwise similarity values for all rows from the given file.
+    :param in_file: The file for wich row-wise similarities should be computed.
+    :return: A string that represents a "CSV"-file with a similarity value per row.
+    """
 
-    if not (os.path.isfile(JSON_INDEXED_FILE_PATH)):
-        make_GO_freq_json.intialize_termcounts()
+    # These are lists of lists with GO-terms. Both outer lists contain the same number of elements
+    ids, go_lists1, go_lists2 = read_input(in_file)
+    freq_dict = get_frequency_counts()
+    highest_ic_anc = get_highest_ic()
 
-    freq_dict = json.load(open(JSON_INDEXED_FILE_PATH))
+    values = []
 
-    if freq_dict['db_date'] != uniprot_time_stamp:
-        make_GO_freq_json.intialize_termcounts()
-        freq_dict = json.load(open(JSON_INDEXED_FILE_PATH))
-
-    end = time.time()
-    logging.debug(f"Resource loading took {round(end - start, 2)} s")
-
-    start = time.time()
-    queue = multiprocessing.Queue()
-    jobs = []
-
-    cores = multiprocessing.cpu_count()
-    logging.debug(f"Started comparison with {cores} cores / cpu's.")
-
-    if platform.system() == "Linux":
-        godag = GODag(GODAG_FILE_PATH, prt=LogFile())
-
-    numeric_ids = range(0, len(GO_list1))
-    portion_per_core = len(GO_list1) // cores
-    for core in range(cores):
-        logging.debug(f"Started process {core}.")
-        if core == cores - 1:
-            current_ids = numeric_ids[core * portion_per_core:]
-        else:
-            current_ids = numeric_ids[core * portion_per_core:(core + 1) * portion_per_core]
-
-        if len(current_ids) > 0:
-            if platform.system() == "Linux":
-                p = multiprocessing.Process(target=run_process, args=(current_ids, GO_list1, GO_list2, freq_dict, queue, godag))
-            else:
-                p = multiprocessing.Process(target=run_process, args=(current_ids, GO_list1, GO_list2, freq_dict, queue))
-            jobs.append(p)
-            p.start()
-
-    for job in jobs:
-        job.join()
-
-    return_dict = dict()
-    while not queue.empty():
-        id, sim = queue.get()
-        return_dict[id] = sim
-
-    end = time.time()
-    logging.debug(f"Similarity calculation took {round(end - start, 2)} s")
+    for i in range(len(go_lists1)):
+        go_list1 = go_lists1[i]
+        go_list2 = go_lists2[i]
+        values.append(compute_bma_metric(go_list1, go_list2, freq_dict, highest_ic_anc))
 
     print(HEADER)
-    csv_string = HEADER
-    for i, id in enumerate(ids):
-        line = f"{id},{return_dict[i]}"
+    lines = [HEADER]
+    for idx, val in enumerate(values):
+        line = f"{idx},{val}"
         print(line)
-        csv_string += "\n" + line
-    return csv_string
+        lines.append(line)
+    return "\n".join(lines)
 
 
 def plot_similarity(list_similarity_values):
