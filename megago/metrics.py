@@ -3,7 +3,7 @@ import math
 from goatools.semantic import deepest_common_ancestor
 from goatools.gosubdag.gosubdag import GoSubDag
 
-from constants import NAN_VALUE
+from .constants import NAN_VALUE
 
 
 def get_frequency(go_id, term_counts, go_dag):
@@ -80,11 +80,11 @@ def compute_bma_metric(go_list1, go_list2, term_counts, go_dag, highest_ic_anc, 
     for id1 in go_list1:
         similarity_values = []
         for id2 in go_list2:
-            similarity_values.append(similarity_method(id1, id2, go_dag, term_counts))
+            similarity_values.append(similarity_method(id1, id2, go_dag, term_counts, highest_ic_anc))
         summation_set12 += max(similarity_values + [NAN_VALUE])
     for id2 in go_list2:
         similarity_values = []
         for id1 in go_list1:
-            similarity_values.append(similarity_method(id2, id1, go_dag, term_counts))
+            similarity_values.append(similarity_method(id2, id1, go_dag, term_counts, highest_ic_anc))
         summation_set21 += max(similarity_values + [NAN_VALUE])
     return (summation_set12 + summation_set21) / (len(go_list1) + len(go_list2))

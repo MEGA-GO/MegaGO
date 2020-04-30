@@ -1,6 +1,7 @@
 # Dependencies, with versions explicitly declared for development and testing
 goatools==1.0.3
 seaborn
+progress
 # Packages that are not dependencies but used for building or testing
 pandas
 pylint

@@ -5,10 +5,14 @@ import sys
 import logging
 import pkg_resources
 import re
+import os
 
-from precompute_highest_ic import get_highest_ic
-from metrics import compute_bma_metric
-from precompute_frequency_counts import get_frequency_counts
+from goatools.obo_parser import GODag
+
+from .constants import GO_DAG_FILE_PATH
+from .precompute_highest_ic import get_highest_ic
+from .metrics import compute_bma_metric
+from .precompute_frequency_counts import get_frequency_counts
 
 
 EXIT_COMMAND_LINE_ERROR = 2
@@ -133,13 +137,14 @@ def run_comparison(in_file):
     ids, go_lists1, go_lists2 = read_input(in_file)
     freq_dict = get_frequency_counts()
     highest_ic_anc = get_highest_ic()
+    go_dag = GODag(GO_DAG_FILE_PATH, prt=open(os.devnull, 'w'))
 
     values = []
 
     for i in range(len(go_lists1)):
         go_list1 = go_lists1[i]
         go_list2 = go_lists2[i]
-        values.append(compute_bma_metric(go_list1, go_list2, freq_dict, highest_ic_anc))
+        values.append(compute_bma_metric(go_list1, go_list2, freq_dict, go_dag, highest_ic_anc))
 
     print(HEADER)
     lines = [HEADER]
