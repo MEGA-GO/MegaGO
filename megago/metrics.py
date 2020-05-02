@@ -5,6 +5,8 @@ from goatools.gosubdag.gosubdag import GoSubDag
 
 from .constants import NAN_VALUE
 
+deepest_common_ancestor_cache = dict()
+
 
 def get_frequency(go_id, term_counts, go_dag):
     go_term = go_dag[go_id]
@@ -42,6 +44,14 @@ def get_highest_ic_anc(id, term_counts, go_dag):
         return 0
 
 
+def get_deepest_common_ancestor(id1, id2, go_dag):
+    global deepest_common_ancestor_cache
+    key = (id1, id2) if id1 < id2 else (id2, id1)
+    if key not in deepest_common_ancestor_cache:
+        deepest_common_ancestor_cache[key] = deepest_common_ancestor([id1, id2], go_dag)
+    return deepest_common_ancestor_cache[key]
+
+
 def rel_metric(id1, id2, go_dag, term_counts, highest_ic_anc):
     """
     Computes the relative metric between the GO-terms id1 and id2.
@@ -58,7 +68,7 @@ def rel_metric(id1, id2, go_dag, term_counts, highest_ic_anc):
     go_term1 = go_dag[id1]
     go_term2 = go_dag[id2]
     if go_term1.namespace == go_term2.namespace:
-        mica_goid = deepest_common_ancestor([id1, id2], go_dag)
+        mica_goid = get_deepest_common_ancestor(id1, id2, go_dag)
         freq = get_frequency(mica_goid, term_counts, go_dag)
         info_content = get_ic(mica_goid, term_counts, go_dag)
         info_content1 = get_ic(id1, term_counts, go_dag)
