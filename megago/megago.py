@@ -231,9 +231,11 @@ def rel_metric(go_id1, go_id2, go_dag, term_counts):
         info_content_mica = get_info_content(mica_goid, term_counts, go_dag)
         info_content1 = get_info_content(go_id1, term_counts, go_dag)
         info_content2 = get_info_content(go_id2, term_counts, go_dag)
-        if info_content1 == 0:
+        # if info content of go_id == 0, although the term occurs multiple times in the body of evidence, the term
+        # counts of the go_id include all term counts in the specific namespace
+        if (info_content1 == 0) and (term_counts.get(go_id1, 0) == 0):
             info_content1 = get_ic_of_most_informative_ancestor(go_id1, term_counts, go_dag)
-        if info_content2 == 0:
+        if (info_content2 == 0) and (term_counts.get(go_id2, 0) == 0):
             info_content2 = get_ic_of_most_informative_ancestor(go_id2, term_counts, go_dag)
         if info_content1 + info_content2 == 0:
             return 0
