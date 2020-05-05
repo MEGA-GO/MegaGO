@@ -1,4 +1,4 @@
-"""Mega-GO - Calculate semantic distance for sets of Gene Ontology (GO) terms
+"""Mega-GO - Calculate semantic distance for sets of Gene Ontology (GO) terms.
 
 Read a file that contains GO terms and print their semantic similarity.
 """
@@ -59,11 +59,11 @@ def read_input(in_file, sep=",", go_sep=";"):
 
     Returns
     -------
-    id_list
+    id_list : list
         list of IDs from first column of in_file
-    go_list1
+    go_list1 : list
         nested lists of GO terms from second column of in_file
-    go_list2
+    go_list2 : list
         nested lists of GO terms from third column of in_file
     """
 
@@ -85,22 +85,41 @@ def read_input(in_file, sep=",", go_sep=";"):
     return id_list, go_list1, go_list2
 
 
-def get_frequency(go_id, termcounts, godag):
-    go_term = godag[go_id]
+def get_frequency(go_id, term_counts, go_dag):
+    """get the relative frequency of go_id in it's respective namespace.
+
+    The number of occurrences of the provided go_id and all of its children is divided by the total number of term
+    occurrences in the associated GO namespace.
+
+    Parameters
+    ----------
+    go_id : str
+        gene ontology ID that the relative frequency should be calculated for
+    term_counts : dict
+        dictionary: key: GO terms, values: number of occurrences of GO term and its children in body of evidence
+    go_dag : GODag object
+        GODag object from the goatools package
+
+    Returns
+    -------
+    float
+
+    """
+    go_term = go_dag[go_id]
     namespace = go_term.namespace
     if namespace == 'molecular_function':
-        parent_count = termcounts.get('GO:0003674')
+        parent_count = term_counts.get('GO:0003674')
     elif namespace == 'cellular_component':
-        parent_count = termcounts.get("GO:0005575")
+        parent_count = term_counts.get("GO:0005575")
     else:
-        parent_count = termcounts.get('GO:0008150')
+        parent_count = term_counts.get('GO:0008150')
 
-    return float(termcounts.get(go_id, 0)) / parent_count
+    return float(term_counts.get(go_id, 0)) / parent_count
 
 
-def get_info_content(go_id, termcounts, godag):
-    freq = get_frequency(go_id,termcounts,godag)
-    if(freq == 0):
+def get_info_content(go_id, term_counts, go_dag):
+    freq = get_frequency(go_id, term_counts, go_dag)
+    if freq == 0:
         return 0
     return 0.0 - math.log(freq)
 
@@ -263,9 +282,11 @@ def run_comparison(in_file):
 
         if len(current_ids) > 0:
             if platform.system() == "Linux":
-                p = multiprocessing.Process(target=run_process, args=(current_ids, GO_list1, GO_list2, freq_dict, queue, godag))
+                p = multiprocessing\
+                    .Process(target=run_process, args=(current_ids, GO_list1, GO_list2, freq_dict, queue, godag))
             else:
-                p = multiprocessing.Process(target=run_process, args=(current_ids, GO_list1, GO_list2, freq_dict, queue))
+                p = multiprocessing\
+                    .Process(target=run_process, args=(current_ids, GO_list1, GO_list2, freq_dict, queue))
             jobs.append(p)
             p.start()
 
