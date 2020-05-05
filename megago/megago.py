@@ -118,9 +118,29 @@ def get_frequency(go_id, term_counts, go_dag):
 
 
 def get_info_content(go_id, term_counts, go_dag):
+    """get information content of go_id
+
+    The information content is calculated as negative natural logarithm of the relative frequency of go_id.
+
+    Parameters
+    ----------
+     go_id : str
+        gene ontology ID that the relative frequency should be calculated for
+    term_counts : dict
+        dictionary: key: GO terms, values: number of occurrences of GO term and its children in body of evidence
+    go_dag : GODag object
+        GODag object from the goatools package
+
+    Returns
+    -------
+    float
+        if relative frequency of go_id == 0: 0
+        else: negative natural logarithm of the relative frequency of go_id
+
+    """
     freq = get_frequency(go_id, term_counts, go_dag)
     if freq == 0:
-        return 0
+        return 0.
     return 0.0 - math.log(freq)
 
 
