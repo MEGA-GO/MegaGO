@@ -144,7 +144,7 @@ def get_info_content(go_id, term_counts, go_dag):
     return 0.0 - math.log(freq)
 
 
-def best_match_average(go_list1, go_list2, termcounts, go_dag, similarity_method=None):
+def best_match_average(go_list1, go_list2, term_counts, go_dag, similarity_method=None):
     if similarity_method is None:
         similarity_method = rel_metric
     summation_set_12 = 0.0
@@ -152,12 +152,12 @@ def best_match_average(go_list1, go_list2, termcounts, go_dag, similarity_method
     for id1 in go_list1:
         similarity_values = []
         for id2 in go_list2:
-            similarity_values.append(similarity_method(id1, id2, go_dag, termcounts))
+            similarity_values.append(similarity_method(id1, id2, go_dag, term_counts))
         summation_set_12 += max(similarity_values + [NAN_VALUE])
     for id2 in go_list2:
         similarity_values = []
         for id1 in go_list1:
-            similarity_values.append(similarity_method(id2, id1, go_dag, termcounts))
+            similarity_values.append(similarity_method(id2, id1, go_dag, term_counts))
         summation_set_21 += max(similarity_values + [NAN_VALUE])
     return (summation_set_12 + summation_set_21) / (len(go_list1) + len(go_list2))
 
@@ -175,25 +175,53 @@ def get_ancestor_w_highest_info_content(id, termcounts, godag):
     return max_ic
 
 
-def rel_metric(id1, id2, godag, termcounts):
-    if (id1 not in godag) or (id2 not in godag):
+def rel_metric(go_id1, go_id2, go_dag, term_counts):
+    """calculate semantic similarity of the GO terms id1 and id2 using the rel metric 
+    
+    Formula of the metric: (2 * info_content(mica) * (1 - freq(mica))) / (info_content(go_id1) + info_content(go_id2))
+    where mica is the most informative common ancestor of go_id1 and go_id2.
+    Metric is implemented according to: Schlicker, A., Domingues, F.S., Rahnenführer, J. et al. A new measure for 
+    functional similarity of gene products based on Gene Ontology. BMC Bioinformatics 7, 302 (2006) 
+    doi:10.1186/1471-2105-7-302 
+    
+
+    Parameters
+    ----------
+    go_id1 : str
+        GO term
+    go_id2 : str
+        GO term
+    go_dag : GODag object
+        GODag object from the goatools package
+    term_counts : dict
+        dictionary: key: GO terms, values: number of occurrences of GO term and its children in body of evidence
+
+    Returns
+    -------
+    float 
+        if go_id1 and go_id2 are from different GO namespaces or either of them misses in the go_dag: NAN_VALUE
+        else: rel metric
+
+    """
+
+    if (go_id1 not in go_dag) or (go_id2 not in go_dag):
         return NAN_VALUE
 
-    goterm1 = godag[id1]
-    goterm2 = godag[id2]
+    goterm1 = go_dag[go_id1]
+    goterm2 = go_dag[go_id2]
     if goterm1.namespace == goterm2.namespace:
-        mica_goid = deepest_common_ancestor([id1, id2], godag)
-        freq = get_frequency(mica_goid, termcounts,godag)
-        info_content = get_info_content(mica_goid, termcounts, godag)
-        info_content1 = get_info_content(id1, termcounts, godag)
-        info_content2 = get_info_content(id2, termcounts, godag)
+        mica_goid = deepest_common_ancestor([go_id1, go_id2], go_dag)
+        freq_mica = get_frequency(mica_goid, term_counts, go_dag)
+        info_content_mica = get_info_content(mica_goid, term_counts, go_dag)
+        info_content1 = get_info_content(go_id1, term_counts, go_dag)
+        info_content2 = get_info_content(go_id2, term_counts, go_dag)
         if info_content1 == 0:
-            info_content1 = get_ancestor_w_highest_info_content(id1, termcounts, godag)
+            info_content1 = get_ancestor_w_highest_info_content(go_id1, term_counts, go_dag)
         if info_content2 == 0:
-            info_content2 = get_ancestor_w_highest_info_content(id2, termcounts, godag)
+            info_content2 = get_ancestor_w_highest_info_content(go_id2, term_counts, go_dag)
         if info_content1 + info_content2 == 0:
             return 0
-        return (2 * info_content * (1 - freq)) / (info_content1 + info_content2)
+        return (2 * info_content_mica * (1 - freq_mica)) / (info_content1 + info_content2)
     else:    # if goterms are from different GO namespaces (molecular function, cellular component, biological process)
         return NAN_VALUE
 
