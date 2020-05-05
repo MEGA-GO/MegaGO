@@ -180,8 +180,7 @@ def get_ic_of_most_informative_ancestor(go_id, term_counts, go_dag):
     float
 
     """
-    if term_counts.get(go_id, 0) > 0:
-        return 0
+
     go_sub_dag_r0 = GoSubDag([go_id], go_dag, prt=None)
     parents = go_sub_dag_r0.rcntobj.go2ancestors[go_id]
     max_ic = 0
