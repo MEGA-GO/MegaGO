@@ -6,7 +6,7 @@ Read a file that contains GO terms and print their semantic similarity.
 from goatools.obo_parser import GODag
 from goatools.semantic import deepest_common_ancestor
 from goatools.gosubdag.gosubdag import GoSubDag
-from . import make_GO_freq_json, DATA_DIR, JSON_INDEXED_FILE_PATH, uniprot_time_stamp, NAN_VALUE
+from . import make_go_freq_json, DATA_DIR, JSON_INDEXED_FILE_PATH, uniprot_time_stamp, NAN_VALUE
 import time
 import multiprocessing
 
@@ -313,15 +313,15 @@ def run_process(ids, go1, go2, freq_dict, queue, godag=None):
 
 def run_comparison(in_file):
     start = time.time()
-    ids, GO_list1, GO_list2 = read_input(in_file)
+    ids, go_list1, go_list2 = read_input(in_file)
 
     if not (os.path.isfile(JSON_INDEXED_FILE_PATH)):
-        make_GO_freq_json.intialize_termcounts()
+        make_go_freq_json.intialize_termcounts()
 
     freq_dict = json.load(open(JSON_INDEXED_FILE_PATH))
 
     if freq_dict['db_date'] != uniprot_time_stamp:
-        make_GO_freq_json.intialize_termcounts()
+        make_go_freq_json.intialize_termcounts()
         freq_dict = json.load(open(JSON_INDEXED_FILE_PATH))
 
     end = time.time()
@@ -335,10 +335,10 @@ def run_comparison(in_file):
     logging.debug(f"Started comparison with {cores} cores / cpu's.")
 
     if platform.system() == "Linux":
-        godag = GODag(GODAG_FILE_PATH, prt=LogFile())
+        go_dag = GODag(GODAG_FILE_PATH, prt=LogFile())
 
-    numeric_ids = range(0, len(GO_list1))
-    portion_per_core = len(GO_list1) // cores
+    numeric_ids = range(0, len(go_list1))
+    portion_per_core = len(go_list1) // cores
     for core in range(cores):
         logging.debug(f"Started process {core}.")
         if core == cores - 1:
@@ -349,10 +349,10 @@ def run_comparison(in_file):
         if len(current_ids) > 0:
             if platform.system() == "Linux":
                 p = multiprocessing\
-                    .Process(target=run_process, args=(current_ids, GO_list1, GO_list2, freq_dict, queue, godag))
+                    .Process(target=run_process, args=(current_ids, go_list1, go_list2, freq_dict, queue, go_dag))
             else:
                 p = multiprocessing\
-                    .Process(target=run_process, args=(current_ids, GO_list1, GO_list2, freq_dict, queue))
+                    .Process(target=run_process, args=(current_ids, go_list1, go_list2, freq_dict, queue))
             jobs.append(p)
             p.start()
 
@@ -405,14 +405,19 @@ def init_logging(log_filename, verbose):
     indicating the program has started, and also write out the
     command line from sys.argv
 
-    Arguments:
-        log_filename: string name of the log file to write to
-          or None, if is None, log output will go tto stderr
-        verbose: integer, increase verbosity level. Default
-        level is WARNING, 1->INFO, 2->DEBUG, >=3->NOTSET
-    Result:
-        None
+    Parameters
+    ----------
+    log_filename : str
+        name of the log file to write to or None, if is None, log output will go tto stderr
+    verbose : int
+        increase verbosity level. d(efault is WARNING, 1->INFO, 2->DEBUG, >=3->NOTSET)
+
+    Returns
+    -------
+    None
+
     """
+
     verbosity = 30 - verbose * 10
     if verbosity < 0:
         verbosity = 0
