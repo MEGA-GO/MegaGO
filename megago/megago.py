@@ -1,3 +1,8 @@
+"""Mega-GO - Calculate semantic distance for sets of Gene Ontology (GO) terms
+
+Read a file that contains GO terms and print their semantic similarity.
+"""
+
 from goatools.obo_parser import GODag
 from goatools.semantic import deepest_common_ancestor
 from goatools.gosubdag.gosubdag import GoSubDag
@@ -160,8 +165,7 @@ def parse_args():
     Will exit the program on a command line error.
     """
 
-    description = 'Calculate semantic distance for sets of Gene Ontology terms'
-    parser = argparse.ArgumentParser(description=description)
+    parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--version',
                         action='version',
                         version='%(prog)s ' + PROGRAM_VERSION)
