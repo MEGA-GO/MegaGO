@@ -162,15 +162,32 @@ def best_match_average(go_list1, go_list2, term_counts, go_dag, similarity_metho
     return (summation_set_12 + summation_set_21) / (len(go_list1) + len(go_list2))
 
 
-def get_ancestor_w_highest_info_content(id, termcounts, godag):
-    if termcounts.get(id, 0) > 0:
-        return 0
-    go_sub_dag_r0 = GoSubDag([id], godag, prt=None)
-    parents = go_sub_dag_r0.rcntobj.go2ancestors[id]
+def get_ic_of_highest_ic_anc(go_id, term_counts, go_dag):
+    """get the information content of the go_id parent with the highest information content.
+
+    Parameters
+    ----------
+    go_id : str
+        GO term
+    term_counts : dict
+        dictionary: key: GO terms, values: number of occurrences of GO term and its children in body of evidence
+    go_dag : GODag object
+        GODag object from the goatools package
+
+
+    Returns
+    -------
+    float
+
+    """
+    # if term_counts.get(go_id, 0) > 0:
+    #     return 0
+    go_sub_dag_r0 = GoSubDag([go_id], go_dag, prt=None)
+    parents = go_sub_dag_r0.rcntobj.go2ancestors[go_id]
     max_ic = 0
-    for i in parents:
-        ic = get_info_content(i, termcounts, godag)
-        if max_ic < ic:
+    for p in parents:
+        ic = get_info_content(p, term_counts, go_dag)
+        if ic > max_ic:
             max_ic = ic
     return max_ic
 
@@ -216,9 +233,9 @@ def rel_metric(go_id1, go_id2, go_dag, term_counts):
         info_content1 = get_info_content(go_id1, term_counts, go_dag)
         info_content2 = get_info_content(go_id2, term_counts, go_dag)
         if info_content1 == 0:
-            info_content1 = get_ancestor_w_highest_info_content(go_id1, term_counts, go_dag)
+            info_content1 = get_ic_of_highest_ic_anc(go_id1, term_counts, go_dag)
         if info_content2 == 0:
-            info_content2 = get_ancestor_w_highest_info_content(go_id2, term_counts, go_dag)
+            info_content2 = get_ic_of_highest_ic_anc(go_id2, term_counts, go_dag)
         if info_content1 + info_content2 == 0:
             return 0
         return (2 * info_content_mica * (1 - freq_mica)) / (info_content1 + info_content2)
