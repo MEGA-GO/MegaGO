@@ -32,6 +32,7 @@ except pkg_resources.DistributionNotFound:
 
 GODAG_FILE_PATH = os.path.join(DATA_DIR, "go-basic.obo")
 
+
 def is_go_term(string):
     regex = re.compile(r"^go:\d{7}$", re.IGNORECASE)
     if regex.match(string):
@@ -41,14 +42,24 @@ def is_go_term(string):
 
 
 def read_input(in_file, sep=",", go_sep=";"):
-    """
-    Read a csv with three columns: ID, GO terms 1, GO terms 2, coming from two datasets
-    Arguments:
-        in_file: an open file object
-        sep: field separator of input file, default: ','
-        go_sep: separator between individual go terms, default: ';'
-    Result:
-        id_list, two nested lists of GO terms
+    """Read and return the first three columns of an open file
+
+    Parameters
+    ----------
+    in_file : an open file object
+    sep : str, optional
+        field separator of input file (default is ',')
+    go_sep : str, optional
+        separator between individual go terms (default is ';')
+
+    Returns
+    -------
+    id_list
+        list of IDs from first column of in_file
+    go_list1
+        nested lists of GO terms from second column of in_file
+    go_list2
+        nested lists of GO terms from third column of in_file
     """
 
     id_list, go_list1, go_list2 = list(), list(), list()
@@ -72,54 +83,55 @@ def read_input(in_file, sep=",", go_sep=";"):
 def get_frequency(go_id, termcounts, godag):
     go_term = godag[go_id]
     namespace = go_term.namespace
-    if (namespace == 'molecular_function'):
+    if namespace == 'molecular_function':
         parent_count = termcounts.get('GO:0003674')
-    elif (namespace == 'cellular_component'):
+    elif namespace == 'cellular_component':
         parent_count = termcounts.get("GO:0005575")
     else:
         parent_count = termcounts.get('GO:0008150')
 
     return float(termcounts.get(go_id, 0)) / parent_count
 
-def get_ic(go_id,termcounts,godag):
+
+def get_info_content(go_id, termcounts, godag):
     freq = get_frequency(go_id,termcounts,godag)
     if(freq == 0):
         return 0
     return 0.0 - math.log(freq)
 
 
-def BMA(GO_list1, GO_list2, termcounts, godag, similarity_method=None):
+def best_match_average(go_list1, go_list2, termcounts, go_dag, similarity_method=None):
     if similarity_method is None:
-        similarity_method = Rel_Metric
-    summationSet12 = 0.0
-    summationSet21 = 0.0
-    for id1 in GO_list1:
+        similarity_method = rel_metric
+    summation_set_12 = 0.0
+    summation_set_21 = 0.0
+    for id1 in go_list1:
         similarity_values = []
-        for id2 in GO_list2:
-            similarity_values.append(similarity_method(id1, id2, godag, termcounts))
-        summationSet12 += max(similarity_values + [NAN_VALUE])
-    for id2 in GO_list2:
+        for id2 in go_list2:
+            similarity_values.append(similarity_method(id1, id2, go_dag, termcounts))
+        summation_set_12 += max(similarity_values + [NAN_VALUE])
+    for id2 in go_list2:
         similarity_values = []
-        for id1 in GO_list1:
-            similarity_values.append(similarity_method(id2, id1, godag, termcounts))
-        summationSet21 += max(similarity_values + [NAN_VALUE])
-    return (summationSet12 + summationSet21) / (len(GO_list1) + len(GO_list2))
+        for id1 in go_list1:
+            similarity_values.append(similarity_method(id2, id1, go_dag, termcounts))
+        summation_set_21 += max(similarity_values + [NAN_VALUE])
+    return (summation_set_12 + summation_set_21) / (len(go_list1) + len(go_list2))
 
 
-def get_highest_ic_anc(id, termcounts, godag):
+def get_ancestor_w_highest_info_content(id, termcounts, godag):
     if termcounts.get(id, 0) > 0:
         return 0
-    gosubdag_r0 = GoSubDag([id], godag, prt=None)
-    P = gosubdag_r0.rcntobj.go2ancestors[id]
+    go_sub_dag_r0 = GoSubDag([id], godag, prt=None)
+    parents = go_sub_dag_r0.rcntobj.go2ancestors[id]
     max_ic = 0
-    for i in P:
-        ic = get_ic(i, termcounts,godag)
-        if (max_ic < ic):
+    for i in parents:
+        ic = get_info_content(i, termcounts, godag)
+        if max_ic < ic:
             max_ic = ic
     return max_ic
 
 
-def Rel_Metric(id1, id2, godag, termcounts):
+def rel_metric(id1, id2, godag, termcounts):
     if (id1 not in godag) or (id2 not in godag):
         return NAN_VALUE
 
@@ -128,13 +140,13 @@ def Rel_Metric(id1, id2, godag, termcounts):
     if goterm1.namespace == goterm2.namespace:
         mica_goid = deepest_common_ancestor([id1, id2], godag)
         freq = get_frequency(mica_goid, termcounts,godag)
-        info_content = get_ic(mica_goid, termcounts,godag)
-        info_content1 = get_ic(id1, termcounts,godag)
-        info_content2 = get_ic(id2, termcounts,godag)
+        info_content = get_info_content(mica_goid, termcounts, godag)
+        info_content1 = get_info_content(id1, termcounts, godag)
+        info_content2 = get_info_content(id2, termcounts, godag)
         if info_content1 == 0:
-            info_content1 = get_highest_ic_anc(id1, termcounts,godag)
-        if (info_content2 == 0):
-            info_content2 = get_highest_ic_anc(id2, termcounts,godag)
+            info_content1 = get_ancestor_w_highest_info_content(id1, termcounts, godag)
+        if info_content2 == 0:
+            info_content2 = get_ancestor_w_highest_info_content(id2, termcounts, godag)
         if info_content1 + info_content2 == 0:
             return 0
         return (2 * info_content * (1 - freq)) / (info_content1 + info_content2)
@@ -143,10 +155,11 @@ def Rel_Metric(id1, id2, godag, termcounts):
 
 
 def parse_args():
-    '''Parse command line arguments.
+    """Parse command line arguments.
     Returns Options object with command line argument values as attributes.
     Will exit the program on a command line error.
-    '''
+    """
+
     description = 'Calculate semantic distance for sets of Gene Ontology terms'
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument('--version',
@@ -205,7 +218,7 @@ def run_process(ids, go1, go2, freq_dict, queue, godag=None):
     if godag is None:
         godag = GODag(GODAG_FILE_PATH, prt=LogFile())
     for id in ids:
-        BMA_test = BMA(go1[id], go2[id], freq_dict, godag)
+        BMA_test = best_match_average(go1[id], go2[id], freq_dict, godag)
         queue.put([id, BMA_test])
 
 
