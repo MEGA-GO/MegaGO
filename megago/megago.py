@@ -1,7 +1,12 @@
+"""Mega-GO - Calculate semantic distance for sets of Gene Ontology (GO) terms.
+
+Read a file that contains GO terms and print their semantic similarity.
+"""
+
 from goatools.obo_parser import GODag
 from goatools.semantic import deepest_common_ancestor
 from goatools.gosubdag.gosubdag import GoSubDag
-from . import make_GO_freq_json, DATA_DIR, JSON_INDEXED_FILE_PATH, uniprot_time_stamp, NAN_VALUE
+from . import make_go_freq_json, DATA_DIR, JSON_INDEXED_FILE_PATH, UNIPROT_TIME_STAMP, NAN_VALUE
 import time
 import multiprocessing
 
@@ -32,6 +37,7 @@ except pkg_resources.DistributionNotFound:
 
 GODAG_FILE_PATH = os.path.join(DATA_DIR, "go-basic.obo")
 
+
 def is_go_term(string):
     regex = re.compile(r"^go:\d{7}$", re.IGNORECASE)
     if regex.match(string):
@@ -41,14 +47,24 @@ def is_go_term(string):
 
 
 def read_input(in_file, sep=",", go_sep=";"):
-    """
-    Read a csv with three columns: ID, GO terms 1, GO terms 2, coming from two datasets
-    Arguments:
-        in_file: an open file object
-        sep: field separator of input file, default: ','
-        go_sep: separator between individual go terms, default: ';'
-    Result:
-        id_list, two nested lists of GO terms
+    """Read and return the first three columns of an open file
+
+    Parameters
+    ----------
+    in_file : an open file object
+    sep : str, optional
+        field separator of input file (default is ',')
+    go_sep : str, optional
+        separator between individual go terms (default is ';')
+
+    Returns
+    -------
+    id_list : list
+        list of IDs from first column of in_file
+    go_list1 : list
+        nested lists of GO terms from second column of in_file
+    go_list2 : list
+        nested lists of GO terms from third column of in_file
     """
 
     id_list, go_list1, go_list2 = list(), list(), list()
@@ -69,86 +85,172 @@ def read_input(in_file, sep=",", go_sep=";"):
     return id_list, go_list1, go_list2
 
 
-def get_frequency(go_id, termcounts, godag):
-    go_term = godag[go_id]
+def get_frequency(go_id, term_counts, go_dag):
+    """get the relative frequency of go_id in it's respective namespace.
+
+    The number of occurrences of the provided go_id and all of its children is divided by the total number of term
+    occurrences in the associated GO namespace.
+
+    Parameters
+    ----------
+    go_id : str
+        gene ontology ID that the relative frequency should be calculated for
+    term_counts : dict
+        dictionary: key: GO terms, values: number of occurrences of GO term and its children in body of evidence
+    go_dag : GODag object
+        GODag object from the goatools package
+
+    Returns
+    -------
+    float
+
+    """
+    go_term = go_dag[go_id]
     namespace = go_term.namespace
-    if (namespace == 'molecular_function'):
-        parent_count = termcounts.get('GO:0003674')
-    elif (namespace == 'cellular_component'):
-        parent_count = termcounts.get("GO:0005575")
+    if namespace == 'molecular_function':
+        parent_count = term_counts.get('GO:0003674')
+    elif namespace == 'cellular_component':
+        parent_count = term_counts.get("GO:0005575")
     else:
-        parent_count = termcounts.get('GO:0008150')
+        parent_count = term_counts.get('GO:0008150')
 
-    return float(termcounts.get(go_id, 0)) / parent_count
+    return float(term_counts.get(go_id, 0)) / parent_count
 
-def get_ic(go_id,termcounts,godag):
-    freq = get_frequency(go_id,termcounts,godag)
-    if(freq == 0):
-        return 0
+
+def get_info_content(go_id, term_counts, go_dag):
+    """get information content of go_id
+
+    The information content is calculated as negative natural logarithm of the relative frequency of go_id.
+
+    Parameters
+    ----------
+     go_id : str
+        gene ontology ID that the relative frequency should be calculated for
+    term_counts : dict
+        dictionary: key: GO terms, values: number of occurrences of GO term and its children in body of evidence
+    go_dag : GODag object
+        GODag object from the goatools package
+
+    Returns
+    -------
+    float
+        if relative frequency of go_id == 0: 0
+        else: negative natural logarithm of the relative frequency of go_id
+
+    """
+    freq = get_frequency(go_id, term_counts, go_dag)
+    if freq == 0:
+        return 0.
     return 0.0 - math.log(freq)
 
 
-def BMA(GO_list1, GO_list2, termcounts, godag, similarity_method=None):
+def best_match_average(go_list1, go_list2, term_counts, go_dag, similarity_method=None):
     if similarity_method is None:
-        similarity_method = Rel_Metric
-    summationSet12 = 0.0
-    summationSet21 = 0.0
-    for id1 in GO_list1:
+        similarity_method = rel_metric
+    summation_set_12 = 0.0
+    summation_set_21 = 0.0
+    for id1 in go_list1:
         similarity_values = []
-        for id2 in GO_list2:
-            similarity_values.append(similarity_method(id1, id2, godag, termcounts))
-        summationSet12 += max(similarity_values + [NAN_VALUE])
-    for id2 in GO_list2:
+        for id2 in go_list2:
+            similarity_values.append(similarity_method(id1, id2, go_dag, term_counts))
+        summation_set_12 += max(similarity_values + [NAN_VALUE])
+    for id2 in go_list2:
         similarity_values = []
-        for id1 in GO_list1:
-            similarity_values.append(similarity_method(id2, id1, godag, termcounts))
-        summationSet21 += max(similarity_values + [NAN_VALUE])
-    return (summationSet12 + summationSet21) / (len(GO_list1) + len(GO_list2))
+        for id1 in go_list1:
+            similarity_values.append(similarity_method(id2, id1, go_dag, term_counts))
+        summation_set_21 += max(similarity_values + [NAN_VALUE])
+    return (summation_set_12 + summation_set_21) / (len(go_list1) + len(go_list2))
 
 
-def get_highest_ic_anc(id, termcounts, godag):
-    if termcounts.get(id, 0) > 0:
-        return 0
-    gosubdag_r0 = GoSubDag([id], godag, prt=None)
-    P = gosubdag_r0.rcntobj.go2ancestors[id]
+def get_ic_of_most_informative_ancestor(go_id, term_counts, go_dag):
+    """get the information content of the go_id parent with the highest information content.
+
+    Parameters
+    ----------
+    go_id : str
+        GO term
+    term_counts : dict
+        dictionary: key: GO terms, values: number of occurrences of GO term and its children in body of evidence
+    go_dag : GODag object
+        GODag object from the goatools package
+
+
+    Returns
+    -------
+    float
+
+    """
+
+    go_sub_dag_r0 = GoSubDag([go_id], go_dag, prt=None)
+    parents = go_sub_dag_r0.rcntobj.go2ancestors[go_id]
     max_ic = 0
-    for i in P:
-        ic = get_ic(i, termcounts,godag)
-        if (max_ic < ic):
+    for p in parents:
+        ic = get_info_content(p, term_counts, go_dag)
+        if max_ic < ic:
             max_ic = ic
     return max_ic
 
 
-def Rel_Metric(id1, id2, godag, termcounts):
-    if (id1 not in godag) or (id2 not in godag):
+def rel_metric(go_id1, go_id2, go_dag, term_counts):
+    """calculate semantic similarity of the GO terms id1 and id2 using the rel metric 
+    
+    Formula of the metric: (2 * info_content(mica) * (1 - freq(mica))) / (info_content(go_id1) + info_content(go_id2))
+    where mica is the most informative common ancestor of go_id1 and go_id2.
+    Metric is implemented according to: Schlicker, A., Domingues, F.S., Rahnenführer, J. et al. A new measure for 
+    functional similarity of gene products based on Gene Ontology. BMC Bioinformatics 7, 302 (2006) 
+    doi:10.1186/1471-2105-7-302 
+    
+
+    Parameters
+    ----------
+    go_id1 : str
+        GO term
+    go_id2 : str
+        GO term
+    go_dag : GODag object
+        GODag object from the goatools package
+    term_counts : dict
+        dictionary: key: GO terms, values: number of occurrences of GO term and its children in body of evidence
+
+    Returns
+    -------
+    float 
+        if go_id1 and go_id2 are from different GO namespaces or either of them misses in the go_dag: NAN_VALUE
+        else: rel metric
+
+    """
+
+    if (go_id1 not in go_dag) or (go_id2 not in go_dag):
         return NAN_VALUE
 
-    goterm1 = godag[id1]
-    goterm2 = godag[id2]
+    goterm1 = go_dag[go_id1]
+    goterm2 = go_dag[go_id2]
     if goterm1.namespace == goterm2.namespace:
-        mica_goid = deepest_common_ancestor([id1, id2], godag)
-        freq = get_frequency(mica_goid, termcounts,godag)
-        info_content = get_ic(mica_goid, termcounts,godag)
-        info_content1 = get_ic(id1, termcounts,godag)
-        info_content2 = get_ic(id2, termcounts,godag)
-        if info_content1 == 0:
-            info_content1 = get_highest_ic_anc(id1, termcounts,godag)
-        if (info_content2 == 0):
-            info_content2 = get_highest_ic_anc(id2, termcounts,godag)
+        mica_goid = deepest_common_ancestor([go_id1, go_id2], go_dag)
+        freq_mica = get_frequency(mica_goid, term_counts, go_dag)
+        info_content_mica = get_info_content(mica_goid, term_counts, go_dag)
+        info_content1 = get_info_content(go_id1, term_counts, go_dag)
+        info_content2 = get_info_content(go_id2, term_counts, go_dag)
+        # if info content of go_id == 0, although the term occurs multiple times in the body of evidence, the term
+        # counts of the go_id include all term counts in the specific namespace
+        if (info_content1 == 0) and (term_counts.get(go_id1, 0) == 0):
+            info_content1 = get_ic_of_most_informative_ancestor(go_id1, term_counts, go_dag)
+        if (info_content2 == 0) and (term_counts.get(go_id2, 0) == 0):
+            info_content2 = get_ic_of_most_informative_ancestor(go_id2, term_counts, go_dag)
         if info_content1 + info_content2 == 0:
             return 0
-        return (2 * info_content * (1 - freq)) / (info_content1 + info_content2)
+        return (2 * info_content_mica * (1 - freq_mica)) / (info_content1 + info_content2)
     else:    # if goterms are from different GO namespaces (molecular function, cellular component, biological process)
         return NAN_VALUE
 
 
 def parse_args():
-    '''Parse command line arguments.
+    """Parse command line arguments.
     Returns Options object with command line argument values as attributes.
     Will exit the program on a command line error.
-    '''
-    description = 'Calculate semantic distance for sets of Gene Ontology terms'
-    parser = argparse.ArgumentParser(description=description)
+    """
+
+    parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--version',
                         action='version',
                         version='%(prog)s ' + PROGRAM_VERSION)
@@ -205,21 +307,21 @@ def run_process(ids, go1, go2, freq_dict, queue, godag=None):
     if godag is None:
         godag = GODag(GODAG_FILE_PATH, prt=LogFile())
     for id in ids:
-        BMA_test = BMA(go1[id], go2[id], freq_dict, godag)
+        BMA_test = best_match_average(go1[id], go2[id], freq_dict, godag)
         queue.put([id, BMA_test])
 
 
 def run_comparison(in_file):
     start = time.time()
-    ids, GO_list1, GO_list2 = read_input(in_file)
+    ids, go_list1, go_list2 = read_input(in_file)
 
     if not (os.path.isfile(JSON_INDEXED_FILE_PATH)):
-        make_GO_freq_json.intialize_termcounts()
+        make_go_freq_json.intialize_term_counts()
 
     freq_dict = json.load(open(JSON_INDEXED_FILE_PATH))
 
-    if freq_dict['db_date'] != uniprot_time_stamp:
-        make_GO_freq_json.intialize_termcounts()
+    if freq_dict['db_date'] != UNIPROT_TIME_STAMP:
+        make_go_freq_json.intialize_term_counts()
         freq_dict = json.load(open(JSON_INDEXED_FILE_PATH))
 
     end = time.time()
@@ -233,10 +335,10 @@ def run_comparison(in_file):
     logging.debug(f"Started comparison with {cores} cores / cpu's.")
 
     if platform.system() == "Linux":
-        godag = GODag(GODAG_FILE_PATH, prt=LogFile())
+        go_dag = GODag(GODAG_FILE_PATH, prt=LogFile())
 
-    numeric_ids = range(0, len(GO_list1))
-    portion_per_core = len(GO_list1) // cores
+    numeric_ids = range(0, len(go_list1))
+    portion_per_core = len(go_list1) // cores
     for core in range(cores):
         logging.debug(f"Started process {core}.")
         if core == cores - 1:
@@ -246,9 +348,13 @@ def run_comparison(in_file):
 
         if len(current_ids) > 0:
             if platform.system() == "Linux":
-                p = multiprocessing.Process(target=run_process, args=(current_ids, GO_list1, GO_list2, freq_dict, queue, godag))
+                p = multiprocessing.Process(
+                    target=run_process, args=(current_ids, go_list1, go_list2, freq_dict, queue, go_dag)
+                )
             else:
-                p = multiprocessing.Process(target=run_process, args=(current_ids, GO_list1, GO_list2, freq_dict, queue))
+                p = multiprocessing.Process(
+                    target=run_process, args=(current_ids, go_list1, go_list2, freq_dict, queue)
+                )
             jobs.append(p)
             p.start()
 
@@ -301,14 +407,19 @@ def init_logging(log_filename, verbose):
     indicating the program has started, and also write out the
     command line from sys.argv
 
-    Arguments:
-        log_filename: string name of the log file to write to
-          or None, if is None, log output will go tto stderr
-        verbose: integer, increase verbosity level. Default
-        level is WARNING, 1->INFO, 2->DEBUG, >=3->NOTSET
-    Result:
-        None
+    Parameters
+    ----------
+    log_filename : str
+        name of the log file to write to or None, if is None, log output will go tto stderr
+    verbose : int
+        increase verbosity level. (default is WARNING, 1->INFO, 2->DEBUG, >=3->NOTSET)
+
+    Returns
+    -------
+    None
+
     """
+
     verbosity = 30 - verbose * 10
     if verbosity < 0:
         verbosity = 0
