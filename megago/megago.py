@@ -6,7 +6,7 @@ Read a file that contains GO terms and print their semantic similarity.
 from goatools.obo_parser import GODag
 from goatools.semantic import deepest_common_ancestor
 from goatools.gosubdag.gosubdag import GoSubDag
-from . import make_go_freq_json, DATA_DIR, JSON_INDEXED_FILE_PATH, uniprot_time_stamp, NAN_VALUE
+from . import make_go_freq_json, DATA_DIR, JSON_INDEXED_FILE_PATH, UNIPROT_TIME_STAMP, NAN_VALUE
 import time
 import multiprocessing
 
@@ -316,12 +316,12 @@ def run_comparison(in_file):
     ids, go_list1, go_list2 = read_input(in_file)
 
     if not (os.path.isfile(JSON_INDEXED_FILE_PATH)):
-        make_go_freq_json.intialize_termcounts()
+        make_go_freq_json.intialize_term_counts()
 
     freq_dict = json.load(open(JSON_INDEXED_FILE_PATH))
 
-    if freq_dict['db_date'] != uniprot_time_stamp:
-        make_go_freq_json.intialize_termcounts()
+    if freq_dict['db_date'] != UNIPROT_TIME_STAMP:
+        make_go_freq_json.intialize_term_counts()
         freq_dict = json.load(open(JSON_INDEXED_FILE_PATH))
 
     end = time.time()
@@ -348,11 +348,13 @@ def run_comparison(in_file):
 
         if len(current_ids) > 0:
             if platform.system() == "Linux":
-                p = multiprocessing\
-                    .Process(target=run_process, args=(current_ids, go_list1, go_list2, freq_dict, queue, go_dag))
+                p = multiprocessing.Process(
+                    target=run_process, args=(current_ids, go_list1, go_list2, freq_dict, queue, go_dag)
+                )
             else:
-                p = multiprocessing\
-                    .Process(target=run_process, args=(current_ids, go_list1, go_list2, freq_dict, queue))
+                p = multiprocessing.Process(
+                    target=run_process, args=(current_ids, go_list1, go_list2, freq_dict, queue)
+                )
             jobs.append(p)
             p.start()
 
@@ -410,7 +412,7 @@ def init_logging(log_filename, verbose):
     log_filename : str
         name of the log file to write to or None, if is None, log output will go tto stderr
     verbose : int
-        increase verbosity level. d(efault is WARNING, 1->INFO, 2->DEBUG, >=3->NOTSET)
+        increase verbosity level. (default is WARNING, 1->INFO, 2->DEBUG, >=3->NOTSET)
 
     Returns
     -------
