@@ -149,7 +149,7 @@ def run_comparison(in_file):
     print(HEADER)
     lines = [HEADER]
     for idx, val in enumerate(values):
-        line = f"{idx},{val}"
+        line = f"{ids[idx]},{val}"
         print(line)
         lines.append(line)
     return "\n".join(lines)
