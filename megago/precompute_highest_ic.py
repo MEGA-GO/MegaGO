@@ -12,7 +12,7 @@ from progress.bar import IncrementalBar
 
 from .constants import GO_DAG_FILE_PATH, HIGHEST_IC_FILE_PATH, UNIPROT_TIME_STAMP
 from .precompute_frequency_counts import get_frequency_counts
-from .metrics import get_highest_ic_anc
+from .metrics import get_ic_of_most_informative_ancestor
 
 # How large should the chunks be in which the list of terms for which ic needs to be computed should be divided?
 CHUNK_SIZE = 500
@@ -24,7 +24,7 @@ PROCESSES = None
 def _do_compute_highest_inc(terms):
     term_counts = get_frequency_counts()
     go_dag = GODag(GO_DAG_FILE_PATH, prt=open(os.devnull, 'w'))
-    return {term: get_highest_ic_anc(term, term_counts, go_dag) for term in terms}
+    return {term: get_ic_of_most_informative_ancestor(term, term_counts, go_dag) for term in terms}
 
 
 def compute_highest_inc_parallel(terms):

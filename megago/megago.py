@@ -1,3 +1,8 @@
+"""Mega-GO - Calculate semantic distance for sets of Gene Ontology (GO) terms.
+
+Read a file that contains GO terms and print their semantic similarity.
+"""
+
 import argparse
 import numbers
 import seaborn as sns
@@ -30,23 +35,40 @@ except pkg_resources.DistributionNotFound:
 
 
 def is_go_term(candidate):
-    """
-    Checks if a given string could be a valid GO-term identifier. This function only checks if the string satisfies the
-    formatting of a GO-term identifier, not if it actually exists in the ontology!
-    :param candidate: A string for which we should verify if it's a valid GO-identifier.
-    :return: True if the string is indeed a valid identifier, False otherwise.
+    """ Returns true if a given string could be a valid GO-term identifier. This function only checks if the string
+    satisfies the formatting of a GO-term identifier, not if it actually exists in the ontology!
+
+    Parameters
+    ----------
+    candidate: A string for which we should verify if it's a valid GO-identifier.
+
+    Returns
+    -------
+    True if the string is indeed a valid identifier, False otherwise.
     """
     regex = re.compile(r"^go:\d{7}$", re.IGNORECASE)
     return regex.match(candidate)
 
 
 def read_input(in_file, sep=",", go_sep=";"):
-    """
-    Read a csv with three columns: ID, GO terms 1, GO terms 2, coming from two datasets
-    :param in_file: an open file object
-    :param sep: field separator of input file, default: ','
-    :param go_sep: separator between individual go terms, default: ';'
-    :return: id_list and two nested lists of GO terms
+    """Read and return the first three columns of an open file
+
+    Parameters
+    ----------
+    in_file : an open file object
+    sep : str, optional
+        field separator of input file (default is ',')
+    go_sep : str, optional
+        separator between individual go terms (default is ';')
+
+    Returns
+    -------
+    id_list : list
+        list of IDs from first column of in_file
+    go_list1 : list
+        nested lists of GO terms from second column of in_file
+    go_list2 : list
+        nested lists of GO terms from third column of in_file
     """
 
     id_list, go_list1, go_list2 = list(), list(), list()
@@ -68,9 +90,11 @@ def read_input(in_file, sep=",", go_sep=";"):
 
 
 def parse_args():
-    """
-    Parse command line arguments. This function will exit the program on a command line error!
-    :return: Options object with command line argument values as attributes.
+    """ Parse command line arguments. This function will exit the program on a command line error!
+
+    Returns
+    -------
+    Options object with command line argument values as attributes.
     """
     description = 'Calculate semantic distance for sets of Gene Ontology terms'
     parser = argparse.ArgumentParser(description=description)
@@ -127,10 +151,14 @@ class RedirectStdStreams(object):
 
 
 def run_comparison(in_file):
-    """
-    Compute the pairwise similarity values for all rows from the given file.
-    :param in_file: The file for wich row-wise similarities should be computed.
-    :return: A string that represents a "CSV"-file with a similarity value per row.
+    """ Compute the pairwise similarity values for all rows from the given file.
+    Params
+    ------
+    in_file: The file for wich row-wise similarities should be computed.
+
+    Returns
+    -------
+    A string that represents a "CSV"-file with a similarity value per row.
     """
 
     # These are lists of lists with GO-terms. Both outer lists contain the same number of elements
@@ -184,14 +212,19 @@ def init_logging(log_filename, verbose):
     indicating the program has started, and also write out the
     command line from sys.argv
 
-    Arguments:
-        log_filename: string name of the log file to write to
-          or None, if is None, log output will go tto stderr
-        verbose: integer, increase verbosity level. Default
-        level is WARNING, 1->INFO, 2->DEBUG, >=3->NOTSET
-    Result:
-        None
+    Parameters
+    ----------
+    log_filename : str
+        name of the log file to write to or None, if is None, log output will go tto stderr
+    verbose : int
+        increase verbosity level. (default is WARNING, 1->INFO, 2->DEBUG, >=3->NOTSET)
+
+    Returns
+    -------
+    None
+
     """
+
     verbosity = 30 - verbose * 10
     if verbosity < 0:
         verbosity = 0

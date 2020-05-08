@@ -9,6 +9,24 @@ deepest_common_ancestor_cache = dict()
 
 
 def get_frequency(go_id, term_counts, go_dag):
+    """get the relative frequency of go_id in it's respective namespace.
+
+   The number of occurrences of the provided go_id and all of its children is divided by the total number of term
+   occurrences in the associated GO namespace.
+
+   Parameters
+   ----------
+   go_id : str
+       gene ontology ID that the relative frequency should be calculated for
+   term_counts : dict
+       dictionary: key: GO terms, values: number of occurrences of GO term and its children in body of evidence
+   go_dag : GODag object
+       GODag object from the goatools package
+
+   Returns
+   -------
+   float
+   """
     go_term = go_dag[go_id]
     namespace = go_term.namespace
     if namespace == 'molecular_function':
@@ -21,14 +39,51 @@ def get_frequency(go_id, term_counts, go_dag):
     return float(term_counts.get(go_id, 0)) / parent_count
 
 
-def get_ic(go_id, term_counts, go_dag):
+def get_info_content(go_id, term_counts, go_dag):
+    """get information content of go_id
+
+    The information content is calculated as negative natural logarithm of the relative frequency of go_id.
+
+    Parameters
+    ----------
+     go_id : str
+        gene ontology ID that the relative frequency should be calculated for
+    term_counts : dict
+        dictionary: key: GO terms, values: number of occurrences of GO term and its children in body of evidence
+    go_dag : GODag object
+        GODag object from the goatools package
+
+    Returns
+    -------
+    float
+        if relative frequency of go_id == 0: 0
+        else: negative natural logarithm of the relative frequency of go_id
+
+    """
     freq = get_frequency(go_id, term_counts, go_dag)
     if freq == 0:
         return 0
     return 0.0 - math.log(freq)
 
 
-def get_highest_ic_anc(id, term_counts, go_dag):
+def get_ic_of_most_informative_ancestor(id, term_counts, go_dag):
+    """get the information content of the go_id parent with the highest information content.
+
+    Parameters
+    ----------
+    go_id : str
+        GO term
+    term_counts : dict
+        dictionary: key: GO terms, values: number of occurrences of GO term and its children in body of evidence
+    go_dag : GODag object
+        GODag object from the goatools package
+
+
+    Returns
+    -------
+    float
+
+    """
     if term_counts.get(id, 0) > 0:
         return 0
     gosubdag_r0 = GoSubDag([id], go_dag, prt=None)
@@ -52,31 +107,49 @@ def get_deepest_common_ancestor(id1, id2, go_dag):
     return deepest_common_ancestor_cache[key]
 
 
-def rel_metric(id1, id2, go_dag, term_counts, highest_ic_anc):
+def rel_metric(go_id1, go_id2, go_dag, term_counts, highest_ic_anc):
+    """calculate semantic similarity of the GO terms id1 and id2 using the rel metric
+
+    Formula of the metric: (2 * info_content(mica) * (1 - freq(mica))) / (info_content(go_id1) + info_content(go_id2))
+    where mica is the most informative common ancestor of go_id1 and go_id2.
+    Metric is implemented according to: Schlicker, A., Domingues, F.S., Rahnenführer, J. et al. A new measure for
+    functional similarity of gene products based on Gene Ontology. BMC Bioinformatics 7, 302 (2006)
+    doi:10.1186/1471-2105-7-302
+
+
+    Parameters
+    ----------
+    go_id1 : str
+        GO term
+    go_id2 : str
+        GO term
+    go_dag : GODag object
+        GODag object from the goatools package
+    term_counts : dict
+        dictionary: key: GO terms, values: number of occurrences of GO term and its children in body of evidence
+
+    Returns
+    -------
+    float
+        if go_id1 and go_id2 are from different GO namespaces or either of them misses in the go_dag: NAN_VALUE
+        else: rel metric
+
     """
-    Computes the relative metric between the GO-terms id1 and id2.
-    :param id1: string representation of the first GO-term that will be compared with id2.
-    :param id2: string representation of the second GO-term that will be compared with id1.
-    :param go_dag: A Direct Acyclic Graph of all GO-terms.
-    :param term_counts: A dictionary that maps each GO-term onto it's frequency.
-    :param highest_ic_anc: A dictionary that maps each GO-term onto it's highest information content of all ancestors.
-    :return: A floating point value (a score) that indicates how similar the GO-terms id1 and id2 are.
-    """
-    if (id1 not in go_dag) or (id2 not in go_dag):
+    if (go_id1 not in go_dag) or (go_id2 not in go_dag):
         return NAN_VALUE
 
-    go_term1 = go_dag[id1]
-    go_term2 = go_dag[id2]
+    go_term1 = go_dag[go_id1]
+    go_term2 = go_dag[go_id2]
     if go_term1.namespace == go_term2.namespace:
-        mica_goid = get_deepest_common_ancestor(id1, id2, go_dag)
+        mica_goid = get_deepest_common_ancestor(go_id1, go_id2, go_dag)
         freq = get_frequency(mica_goid, term_counts, go_dag)
-        info_content = get_ic(mica_goid, term_counts, go_dag)
-        info_content1 = get_ic(id1, term_counts, go_dag)
-        info_content2 = get_ic(id2, term_counts, go_dag)
+        info_content = get_info_content(mica_goid, term_counts, go_dag)
+        info_content1 = get_info_content(go_id1, term_counts, go_dag)
+        info_content2 = get_info_content(go_id2, term_counts, go_dag)
         if info_content1 == 0:
-            info_content1 = highest_ic_anc[id1]
+            info_content1 = highest_ic_anc[go_id1]
         if info_content2 == 0:
-            info_content2 = highest_ic_anc[id2]
+            info_content2 = highest_ic_anc[go_id2]
         if info_content1 + info_content2 == 0:
             return 0
         return (2 * info_content * (1 - freq)) / (info_content1 + info_content2)
