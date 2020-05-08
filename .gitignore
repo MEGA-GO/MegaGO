@@ -3,7 +3,6 @@
 .Rproj.user
 compare_goa.csv
 GO terms.csv
-go-basic.obo
 goa_uniprot_all.gaf
 goa_uniprot_all.gaf.gz
 tair.gaf
