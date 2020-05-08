@@ -26,10 +26,12 @@ def _precompute_term_frequencies():
 
 
 def get_frequency_counts():
-    """
-    This function precomputes the term frequency counts if these are outdated or not present. If they are present and
+    """ This function precomputes the term frequency counts if these are outdated or not present. If they are present and
     valid, it will directly return the frequency counts.
-    :return: A dictionary that maps each GO-term onto it's frequency counts.
+
+    Returns
+    -------
+    A dictionary that maps each GO-term onto it's frequency counts.
     """
     if not os.path.isfile(FREQUENCY_COUNTS_FILE_PATH):
         _precompute_term_frequencies()

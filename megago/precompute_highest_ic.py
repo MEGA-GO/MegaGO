@@ -28,9 +28,10 @@ def _do_compute_highest_inc(terms):
 
 
 def compute_highest_inc_parallel(terms):
-    """
-    Compare all values from the given terms set in parallel by using up to PROCESSES processes simultaneously.
-    :param terms: A list with GO-terms for which the information content should be precomputed.
+    """ Compare all values from the given terms set in parallel by using up to PROCESSES processes simultaneously.
+    Params
+    ------
+    terms: A list with GO-terms for which the information content should be precomputed.
     """
     print("Start precomputations of the highest_inc_anc for all GO-terms.")
 
