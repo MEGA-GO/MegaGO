@@ -155,7 +155,7 @@ def run_comparison(in_file):
     """ Compute the pairwise similarity values for all rows from the given file.
     
     Parameters
-    ------
+    ----------
     in_file : an open file object
         The file for which row-wise similarities should be computed.
 
