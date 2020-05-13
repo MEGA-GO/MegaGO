@@ -11,22 +11,22 @@ deepest_common_ancestor_cache = dict()
 def get_frequency(go_id, term_counts, go_dag):
     """get the relative frequency of go_id in it's respective namespace.
 
-   The number of occurrences of the provided go_id and all of its children is divided by the total number of term
-   occurrences in the associated GO namespace.
+    The number of occurrences of the provided go_id and all of its children is divided by the total number of term
+    occurrences in the associated GO namespace.
 
-   Parameters
-   ----------
-   go_id : str
-       gene ontology ID that the relative frequency should be calculated for
-   term_counts : dict
-       dictionary: key: GO terms, values: number of occurrences of GO term and its children in body of evidence
-   go_dag : GODag object
-       GODag object from the goatools package
+    Parameters
+    ----------
+    go_id : str
+        gene ontology ID that the relative frequency should be calculated for
+    term_counts : dict
+        dictionary: key: GO terms, values: number of occurrences of GO term and its children in body of evidence
+    go_dag : GODag object
+        GODag object from the goatools package
 
-   Returns
-   -------
-   float
-   """
+    Returns
+    -------
+    float
+    """
     go_term = go_dag[go_id]
     namespace = go_term.namespace
     if namespace == 'molecular_function':
