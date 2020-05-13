@@ -46,7 +46,7 @@ def get_info_content(go_id, term_counts, go_dag):
 
     Parameters
     ----------
-     go_id : str
+    go_id : str
         gene ontology ID that the relative frequency should be calculated for
     term_counts : dict
         dictionary: key: GO terms, values: number of occurrences of GO term and its children in body of evidence

@@ -35,6 +35,7 @@ setup(
     long_description=(LONG_DESCRIPTION),
     install_requires=[
         "goatools",
-        "seaborn"
+        "seaborn",
+        "progress"
     ],
 )

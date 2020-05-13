@@ -97,8 +97,8 @@ def parse_args():
     -------
     Options object with command line argument values as attributes.
     """
-    description = 'Calculate semantic distance for sets of Gene Ontology terms'
-    parser = argparse.ArgumentParser(description=description)
+    parser = argparse.ArgumentParser(description=__doc__)
+
     parser.add_argument('--version',
                         action='version',
                         version='%(prog)s ' + PROGRAM_VERSION)
