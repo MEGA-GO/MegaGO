@@ -47,7 +47,7 @@ def is_go_term(candidate):
     True if the string is indeed a valid identifier, False otherwise.
     """
     regex = re.compile(r"^go:\d{7}$", re.IGNORECASE)
-    return regex.match(candidate)
+    return bool(regex.match(candidate))
 
 
 def read_input(in_file, sep=",", go_sep=";"):
