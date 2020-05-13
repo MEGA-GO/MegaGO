@@ -40,11 +40,12 @@ def is_go_term(candidate):
 
     Parameters
     ----------
-    candidate: A string for which we should verify if it's a valid GO-identifier.
+    candidate : str
+        A string for which we should verify if it's a valid GO-identifier.
 
     Returns
     -------
-    True if the string is indeed a valid identifier, False otherwise.
+    bool
     """
     regex = re.compile(r"^go:\d{7}$", re.IGNORECASE)
     return bool(regex.match(candidate))
