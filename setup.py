@@ -20,9 +20,12 @@ setup(
     author_email='henning.schiebenhoefer@posteo.de',
     packages=['megago'],
     package_dir={'megago': 'megago'},
-    package_data={'megago': ["resource_data/associations-uniprot-sp-20200116.tab",
-                             "resource_data/go-basic.obo",
-                             "resource_data/go_freq_uniprot.json"]},
+    package_data={'megago': [
+        "resources/associations-uniprot-sp-20200116.tab",
+        "resources/go-basic.obo",
+        "resources/frequency_counts_uniprot.json",
+        "resources/highest_ic_uniprot.json"
+    ]},
     entry_points={
         'console_scripts': ['megago = megago.megago:main']
     },
@@ -32,6 +35,7 @@ setup(
     long_description=(LONG_DESCRIPTION),
     install_requires=[
         "goatools",
-        "seaborn"
+        "seaborn",
+        "progress"
     ],
 )
