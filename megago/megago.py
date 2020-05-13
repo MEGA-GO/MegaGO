@@ -153,13 +153,16 @@ class RedirectStdStreams(object):
 
 def run_comparison(in_file):
     """ Compute the pairwise similarity values for all rows from the given file.
-    Params
+    
+    Parameters
     ------
-    in_file: The file for wich row-wise similarities should be computed.
+    in_file : an open file object
+        The file for which row-wise similarities should be computed.
 
     Returns
     -------
-    A string that represents a "CSV"-file with a similarity value per row.
+    str
+        A string that represents a "CSV"-file with a similarity value per row.
     """
 
     # These are lists of lists with GO-terms. Both outer lists contain the same number of elements
