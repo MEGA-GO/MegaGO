@@ -170,4 +170,8 @@ def compute_bma_metric(go_list1, go_list2, term_counts, go_dag, highest_ic_anc, 
         for id1 in go_list1:
             similarity_values.append(similarity_method(id2, id1, go_dag, term_counts, highest_ic_anc))
         summation_set21 += max(similarity_values + [NAN_VALUE])
-    return (summation_set12 + summation_set21) / (len(go_list1) + len(go_list2))
+    if (len(go_list1) + len(go_list2)) == 0:
+        bma = 0
+    else:
+        bma = (summation_set12 + summation_set21) / (len(go_list1) + len(go_list2))
+    return bma
