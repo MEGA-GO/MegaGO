@@ -91,7 +91,7 @@ def get_ic_of_most_informative_ancestor(id, term_counts, go_dag):
         P = gosubdag_r0.rcntobj.go2ancestors[id]
         max_ic = 0
         for i in P:
-            ic = get_ic(i, term_counts, go_dag)
+            ic = get_info_content(i, term_counts, go_dag)
             if max_ic < ic:
                 max_ic = ic
         return max_ic
@@ -155,6 +155,30 @@ def rel_metric(go_id1, go_id2, go_dag, term_counts, highest_ic_anc):
         return (2 * info_content * (1 - freq)) / (info_content1 + info_content2)
     else:    # if goterms are from different GO namespaces (molecular function, cellular component, biological process)
         return NAN_VALUE
+
+
+def _do_compute_max_sim_value(go_list1, go_list2, go_dag, term_counts, highest_ic_anc, similarity_method=rel_metric):
+    for id1 in go_list1:
+        similarity_values = []
+        for id2 in go_list2:
+            similarity_values.append(similarity_method(id1, id2, go_dag, term_counts, highest_ic_anc))
+
+
+# def _do_compute_summation_set_value(go_list1, go_list2, term_counts, go_dag, highest_ic_anc, similarity_method=rel_metric):
+#     # go_list2 must stay the same between all processes
+#     summation_set = 0.0
+#     for id1 in go_list1:
+#         similarity_values = []
+#         for id2 in go_list2:
+#             similarity_values.append(similarity_method(id1, id2, go_dag, term_counts, highest_ic_anc))
+#         summation_set += max(similarity_values + [NAN_VALUE])
+#     return summation_set
+#
+#
+# def parallel_compute_bma_metric(go_list1, go_list2, term_counts, go_dag, highest_ic_anc, similarity_method=rel_metric):
+#
+
+
 
 
 def compute_bma_metric(go_list1, go_list2, term_counts, go_dag, highest_ic_anc, similarity_method=rel_metric):
