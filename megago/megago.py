@@ -101,11 +101,13 @@ def parse_args():
                         )
     parser.add_argument('sample_1',
                         metavar='SAMPLE_1',
-                        nargs='?', type=argparse.FileType('r'),
+                        nargs='?',
+                        type=str,
                         help='Input file for sample 1')
     parser.add_argument('sample_2',
                         metavar='SAMPLE_2',
-                        nargs='?', type=argparse.FileType('r'),
+                        nargs='?',
+                        type=str,
                         help='Input file for sample 2')
 
     return parser.parse_args()
@@ -167,23 +169,15 @@ def split_per_domain(go_terms, go_dag):
     return [output[domain] for domain in GO_DOMAINS]
 
 
-# def compute_parallel(go_list_1, go_list_2, freq_dict, go_dag, highest_ic_anc):
-#     if len(go_list_1) >= PARALLEL_TRESHOLD and len(go_list_2) >= PARALLEL_TRESHOLD:
-#
-#
-#     else:
-#         return compute_bma_metric(go_list_1, go_list_2, freq_dict, go_dag, highest_ic_anc)
-
-
-def run_comparison(in_file_1, in_file_2):
+def run_comparison(go_list_1, go_list_2):
     """ Compute the pairwise similarity values for all rows from the given file.
 
     Parameters
     ----------
-    in_file_1 : an open file object
-        A file with all GO-terms that are present in the first sample.
-    in_file_2 : an open file object
-        A file with all GO-terms that are present in the second sample.
+    go_list_1 : a list with GO-identifiers as strings
+        All GO-terms present in the first sample.
+    go_list_2 : a list with GO-identifiers as strings
+        All GO-terms present in the second sample.
 
     Returns
     -------
@@ -191,16 +185,12 @@ def run_comparison(in_file_1, in_file_2):
         A string that represents a "CSV"-file with a similarity value per row.
     """
 
-    # These are lists of lists with GO-terms. Both outer lists contain the same number of elements
-    go_list1 = read_input(in_file_1)
-    go_list2 = read_input(in_file_2)
-
     freq_dict = get_frequency_counts()
     highest_ic_anc = get_highest_ic()
     go_dag = GODag(GO_DAG_FILE_PATH, prt=open(os.devnull, 'w'))
 
-    split_per_domain_1 = split_per_domain(go_list1, go_dag)
-    split_per_domain_2 = split_per_domain(go_list2, go_dag)
+    split_per_domain_1 = split_per_domain(go_list_1, go_dag)
+    split_per_domain_2 = split_per_domain(go_list_2, go_dag)
 
     results = [
         compute_bma_metric(
@@ -230,11 +220,22 @@ def plot_similarity(list_similarity_values):
     return fig
 
 
-def process_file(options):
-    logging.info("Processing sample 1 from %s", options.sample_1.name)
-    logging.info("Processing sample 2 from %s", options.sample_2.name)
+def process(options):
+    # The GO-terms that need to be compared can be given as a CSV-file or inline in the command as a ";" delimited
+    # string.
+    if options.sample_1.endswith('.csv'):
+        logging.info("Processing sample 1 from %s", options.sample_1)
+        go_list_1 = read_input(open(options.sample_1, 'r'))
+    else:
+        go_list_1 = options.sample_1.split(';')
 
-    csv_table_string = run_comparison(options.sample_1, options.sample_2)
+    if options.sample_2.endswith('.csv'):
+        logging.info("Processing sample 2 from %s", options.sample_2)
+        go_list_2 = read_input(open(options.sample_2, 'r'))
+    else:
+        go_list_2 = options.sample_2.split(';')
+
+    csv_table_string = run_comparison(go_list_1, go_list_2)
     list_similarity_values = []
     for l in csv_table_string.split("\n")[1:]:
         list_similarity_values.append(float(l.split(",")[1]))
@@ -283,7 +284,7 @@ def init_logging(log_filename, verbose):
 def main():
     options = parse_args()
     init_logging(options.log, options.verbose)
-    process_file(options)
+    process(options)
     logging.info("Done!")
 
 
