@@ -165,7 +165,7 @@ with open("example_input_compare_goa.csv", "r") as f:
     next(f)
     for line in f:
         splitted = line.rstrip().split(",")
-        test_stdout_exit(f"{test_program} \"{splitted[1]}\" \"{splitted[2]}\"", splitted[3:6], 0)
+        test_stdout_exit(f"{test_program} {splitted[1]} {splitted[2]}", splitted[3:6], 0)
 # Test parsing of stdin
 # test_exit_status(f"cat example_input-compare_goa.csv | {test_program}", 0)
 # Test exit status for a bad command line invocation

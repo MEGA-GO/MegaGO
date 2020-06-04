@@ -6,6 +6,7 @@ from goatools.gosubdag.gosubdag import GoSubDag
 from .constants import NAN_VALUE
 
 deepest_common_ancestor_cache = dict()
+rel_metric_cache = dict()
 
 
 def get_frequency(go_id, term_counts, go_dag):
@@ -135,6 +136,12 @@ def rel_metric(go_id1, go_id2, go_dag, term_counts, highest_ic_anc):
         else: rel metric
 
     """
+    global rel_metric_cache
+
+    key = (go_id1, go_id2) if go_id1 < go_id2 else (go_id2, go_id1)
+    if key in rel_metric_cache:
+        return rel_metric_cache[key]
+
     if (go_id1 not in go_dag) or (go_id2 not in go_dag):
         return NAN_VALUE
 
@@ -152,9 +159,11 @@ def rel_metric(go_id1, go_id2, go_dag, term_counts, highest_ic_anc):
             info_content2 = highest_ic_anc[go_id2]
         if info_content1 + info_content2 == 0:
             return 0
-        return (2 * info_content * (1 - freq)) / (info_content1 + info_content2)
+        result = (2 * info_content * (1 - freq)) / (info_content1 + info_content2)
     else:    # if goterms are from different GO namespaces (molecular function, cellular component, biological process)
-        return NAN_VALUE
+        result = NAN_VALUE
+    rel_metric_cache[key] = result
+    return result
 
 
 def _do_compute_max_sim_value(go_list1, go_list2, go_dag, term_counts, highest_ic_anc, similarity_method=rel_metric):
