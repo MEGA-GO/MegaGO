@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from distutils.core import setup
+from setuptools import setup
 
 LONG_DESCRIPTION = \
 '''
@@ -15,7 +15,7 @@ and is an ideal starting place for new projects.'''
 
 setup(
     name='megago',
-    version='0.2.0',
+    version='0.2.1',
     author='Henning Schiebenhoefer',
     author_email='henning.schiebenhoefer@posteo.de',
     packages=['megago'],

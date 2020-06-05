@@ -86,9 +86,10 @@ def parse_args():
 # Run a command and check that the output is
 # exactly equal the contents of a specified file
 # ARG1: command we want to test as a string
-# ARG2: a file path containing the expected output
+# ARG2: array with 3 values that represent the expected value for biological process, cellular component, molecular
+# function.
 # ARG3: expected exit status
-def test_stdout_exit(cmd, expected_output_file, expected_exit_status):
+def test_stdout_exit(cmd, expected_output, expected_exit_status):
     global num_tests
     global num_errors
 
@@ -105,22 +106,24 @@ def test_stdout_exit(cmd, expected_output_file, expected_exit_status):
         print(f"Expected exit status: {expected_exit_status}")
     else:
         df1 = pd.read_csv(StringIO(output))
-        df2 = pd.read_csv(expected_output_file)
+        df2 = pd.DataFrame({
+            "DOMAIN": ["biological_process", "cellular_component", "molecular_function"],
+            "SIMILARITY": [float(x) for x in expected_output]
+        })
 
         try:
             pd.testing.assert_frame_equal(df1, df2, check_dtype=False)
         except AssertionError as e:
             num_errors += 1
-            expected_output = open(expected_output_file).read()
             print(f"""
 Test output failed: {cmd}
 Actual output:
 {output}
 Expected output:
-{expected_output}
+{df2.to_csv(index=False)}
 Difference:
 Tables are not equal!
-left:\texpected output ({expected_output_file})
+left:\texpected output ({df2})
 right:\tactual output
 
 File comparison result (first unequal column):
@@ -158,13 +161,17 @@ parse_args()
 # 2. Change to test directory
 os.chdir(test_data_dir)
 # 2. Run tests
-test_stdout_exit(f"{test_program} example_input-compare_goa.csv", "example_input-compare_goa.csv.expected", 0)
+with open("example_input_compare_goa.csv", "r") as f:
+    next(f)
+    for line in f:
+        splitted = line.rstrip().split(",")
+        test_stdout_exit(f"{test_program} {splitted[1]} {splitted[2]}", splitted[3:6], 0)
 # Test parsing of stdin
 # test_exit_status(f"cat example_input-compare_goa.csv | {test_program}", 0)
 # Test exit status for a bad command line invocation
 test_exit_status(f"{test_program} --this_is_not_a_valid_argument", 2)
 # Test exit status for a non existent input FASTA file
-test_exit_status(f"{test_program} this_file_does_not_exist.fasta", 2)
+test_exit_status(f"{test_program} this_file_does_not_exist.csv that_file_also_not_exists.csv", 1)
 
 
 # 3. End of testing - check if any errors occurred
