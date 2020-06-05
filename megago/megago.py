@@ -165,6 +165,8 @@ def split_per_domain(go_terms, go_dag):
         if go_term in go_dag:
             ns = go_dag[go_term].namespace
             output[ns].append(go_term)
+        else:
+            logging.info(f"{go_term} was not found in the Gene Ontology parsed by this script.")
 
     return [output[domain] for domain in GO_DOMAINS]
 
