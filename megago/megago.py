@@ -17,7 +17,7 @@ from goatools.obo_parser import GODag
 
 from .constants import GO_DAG_FILE_PATH
 from .precompute_highest_ic import get_highest_ic
-from .metrics import compute_bma_metric
+from .metrics import compute_bma_metric, rel_metric
 from .precompute_frequency_counts import get_frequency_counts
 
 
@@ -194,23 +194,35 @@ def run_comparison(go_list_1, go_list_2):
     split_per_domain_1 = split_per_domain(go_list_1, go_dag)
     split_per_domain_2 = split_per_domain(go_list_2, go_dag)
 
-    results = [
-        compute_bma_metric(
-            split_per_domain_1[i],
-            split_per_domain_2[i],
-            freq_dict,
-            go_dag,
-            highest_ic_anc
-        ) for i in range(len(GO_DOMAINS))
-    ]
+    for i in range(len(GO_DOMAINS)):
+        domain1 = split_per_domain_1[i]
+        domain2 = split_per_domain_2[i]
+        values = []
+        for id1 in domain1:
+            for id2 in domain2:
+                values.append(",".join([id1, id2, str(rel_metric(id1, id2, go_dag, freq_dict, highest_ic_anc))]))
+        with open(GO_DOMAINS[i] + ".csv", "w") as f:
+            f.write("\n".join(values))
 
-    print(HEADER)
-    lines = [HEADER]
-    for idx, domain in enumerate(GO_DOMAINS):
-        line = f"{domain},{results[idx]}"
-        print(line)
-        lines.append(line)
-    return "\n".join(lines)
+
+
+    # results = [
+    #     compute_bma_metric(
+    #         split_per_domain_1[i],
+    #         split_per_domain_2[i],
+    #         freq_dict,
+    #         go_dag,
+    #         highest_ic_anc
+    #     ) for i in range(len(GO_DOMAINS))
+    # ]
+    #
+    # print(HEADER)
+    # lines = [HEADER]
+    # for idx, domain in enumerate(GO_DOMAINS):
+    #     line = f"{domain},{results[idx]}"
+    #     print(line)
+    #     lines.append(line)
+    # return "\n".join(lines)
 
 
 def plot_similarity(list_similarity_values):
@@ -237,13 +249,13 @@ def process(options):
     else:
         go_list_2 = options.sample_2.split(';')
 
-    csv_table_string = run_comparison(go_list_1, go_list_2)
-    list_similarity_values = []
-    for l in csv_table_string.split("\n")[1:]:
-        list_similarity_values.append(float(l.split(",")[1]))
-    if options.plot_file:
-        figure = plot_similarity(list_similarity_values)
-        figure.savefig(options.plot_file)
+    run_comparison(go_list_1, go_list_2)
+    # list_similarity_values = []
+    # for l in csv_table_string.split("\n")[1:]:
+    #     list_similarity_values.append(float(l.split(",")[1]))
+    # if options.plot_file:
+    #     figure = plot_similarity(list_similarity_values)
+    #     figure.savefig(options.plot_file)
 
 
 def init_logging(log_filename, verbose):
