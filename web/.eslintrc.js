@@ -17,6 +17,8 @@ module.exports = {
         "quotes": ["error", "double"],
         "semi": ["error", "always"],
         "indent": ["error", 4],
-        "space-before-function-paren": ["error", "never"]
+        "space-before-function-paren": ["error", "never"],
+        "no-unused-expressions": "off",
+        "no-trailing-spaces": "off"
     }
 }
