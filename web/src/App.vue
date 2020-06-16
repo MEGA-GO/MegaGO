@@ -30,9 +30,7 @@
             </v-list>
         </v-navigation-drawer>
         <v-main class="mx-xs-2 mx-sm-4 mx-md-16">
-            <v-container fluid>
-                <router-view></router-view>
-            </v-container>
+            <router-view></router-view>
         </v-main>
     </v-app>
 </template>
@@ -50,6 +48,11 @@ export default class App extends Vue {
             icon: "mdi-home",
             title: "Home",
             link: "/"
+        },
+        {
+            icon: "mdi-cog-outline",
+            title: "Analysis",
+            link: "/analysis"
         },
         {
             icon: "mdi-domain",
