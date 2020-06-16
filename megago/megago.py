@@ -11,7 +11,6 @@ import logging
 import pkg_resources
 import re
 import os
-import concurrent.futures
 
 from goatools.obo_parser import GODag
 
@@ -171,7 +170,11 @@ def split_per_domain(go_terms, go_dag):
     return [output[domain] for domain in GO_DOMAINS]
 
 
-def run_comparison(go_list_1, go_list_2):
+def get_default_go_dag():
+    return GODag(GO_DAG_FILE_PATH, prt=open(os.devnull, 'w'))
+
+
+def run_comparison(go_list_1, go_list_2, go_dag=None):
     """ Compute the pairwise similarity values for all rows from the given file.
 
     Parameters
@@ -183,18 +186,20 @@ def run_comparison(go_list_1, go_list_2):
 
     Returns
     -------
-    str
-        A string that represents a "CSV"-file with a similarity value per row.
+    tuple
+        A tuple with 3 values. These correspond to the similarity scores of biological process, cellular component and
+        molecular function respectively.
     """
 
     freq_dict = get_frequency_counts()
     highest_ic_anc = get_highest_ic()
-    go_dag = GODag(GO_DAG_FILE_PATH, prt=open(os.devnull, 'w'))
+    if go_dag is None:
+        go_dag = GODag(GO_DAG_FILE_PATH, prt=open(os.devnull, 'w'))
 
     split_per_domain_1 = split_per_domain(go_list_1, go_dag)
     split_per_domain_2 = split_per_domain(go_list_2, go_dag)
 
-    results = [
+    return tuple(
         compute_bma_metric(
             split_per_domain_1[i],
             split_per_domain_2[i],
@@ -202,15 +207,25 @@ def run_comparison(go_list_1, go_list_2):
             go_dag,
             highest_ic_anc
         ) for i in range(len(GO_DOMAINS))
-    ]
+    )
 
-    print(HEADER)
-    lines = [HEADER]
-    for idx, domain in enumerate(GO_DOMAINS):
-        line = f"{domain},{results[idx]}"
-        print(line)
-        lines.append(line)
-    return "\n".join(lines)
+
+def find_non_existing_terms(go_list, go_dag):
+    """ Checks if each of the given terms from the go_list are present in the GO-dag. Returns a list with all terms that
+    are not present.
+
+    Parameters
+    ----------
+    go_list : a list with GO-identifiers as strings.
+        Every identifier is looked up in the go_dag and is added to the output if it does not exist.
+    go_dag: A valid GO graph.
+
+    Returns
+    -------
+    set
+        A set with all GO-identifiers from the go_list that are not present in the given go_dag.
+    """
+    return set(x for x in go_list if not is_go_term(x) or x not in go_dag)
 
 
 def plot_similarity(list_similarity_values):
@@ -237,7 +252,16 @@ def process(options):
     else:
         go_list_2 = options.sample_2.split(';')
 
-    csv_table_string = run_comparison(go_list_1, go_list_2)
+    results = run_comparison(go_list_1, go_list_2)
+
+    print(HEADER)
+    lines = [HEADER]
+    for idx, domain in enumerate(GO_DOMAINS):
+        line = f"{domain},{results[idx]}"
+        print(line)
+        lines.append(line)
+
+    csv_table_string = "\n".join(lines)
     list_similarity_values = []
     for l in csv_table_string.split("\n")[1:]:
         list_similarity_values.append(float(l.split(",")[1]))
