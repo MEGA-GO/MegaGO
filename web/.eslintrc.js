@@ -19,6 +19,7 @@ module.exports = {
         "indent": ["error", 4],
         "space-before-function-paren": ["error", "never"],
         "no-unused-expressions": "off",
-        "no-trailing-spaces": "off"
+        "no-trailing-spaces": "off",
+        "no-empty-function": "off"
     }
 }

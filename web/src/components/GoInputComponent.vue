@@ -1,8 +1,23 @@
 <template>
     <div>
-        <v-textarea solo name="input-7-4" label="Please a provide a list of valid GO identifiers" hide-details :rows="10">
+        <v-textarea
+            solo
+            name="go-list"
+            label="Please a provide a list of valid GO identifiers"
+            hide-details
+            :rows="10"
+            v-model="contents"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
+            data-gramm_editor="false"
+            :loading="loading">
         </v-textarea>
-        <span>Or <a @click="selectFile">upload a file</a> directly</span>
+        <div>
+            <span style="float: left;">Or <a @click="selectFile">upload a file</a> directly</span>
+            <span style="float: right;">{{ this.contents ? this.contents.split("\n").length : 0 }} GO terms selected</span>
+        </div>
         <input type="file" ref="fileUploader" accept="text/plain, .csv" style="display:none">
     </div>
 </template>
@@ -10,10 +25,16 @@
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
+import { Prop, Watch } from "vue-property-decorator";
 
 @Component
 export default class GoInputComponent extends Vue {
+    @Prop({ required: false, default: "" })
+    private value!: string;
+
     private fileElement!: HTMLInputElement | null;
+    private contents = "";
+    private loading = false;
 
     mounted() {
         this.fileElement = this.$refs.fileUploader as HTMLInputElement | null;
@@ -27,6 +48,16 @@ export default class GoInputComponent extends Vue {
         });
     }
 
+    @Watch("value")
+    private onValueChanged() {
+        this.contents = this.value;
+    }
+
+    @Watch("contents")
+    private onContentsChanged() {
+        this.$emit("input", this.contents);
+    }
+
     private selectFile() {
         if (this.fileElement) {
             this.fileElement.click();
@@ -34,6 +65,7 @@ export default class GoInputComponent extends Vue {
     }
 
     private processFile(file: File) {
+        this.loading = true;
         const reader = new FileReader();
         reader.onload = (data) => {
             let contents = data?.target?.result;
@@ -43,9 +75,10 @@ export default class GoInputComponent extends Vue {
             }
 
             if (contents) {
-                const decoded = atob(contents.split(",")[1]);
-                console.log(decoded);
+                this.contents = atob(contents.split(",")[1]).trimEnd();
             }
+
+            this.loading = false;
         };
         reader.readAsDataURL(file);
     }

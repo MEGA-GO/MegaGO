@@ -1,5 +1,6 @@
 from flask import Flask, request, Response
 from megago.megago import run_comparison, get_default_go_dag, find_non_existing_terms
+from flask_cors import CORS, cross_origin
 
 app = Flask(__name__)
 
@@ -13,6 +14,7 @@ def index():
 
 
 @app.route('/analyse', methods=['POST'])
+@cross_origin()
 def analyse():
     data = request.get_json(silent=True)
 
