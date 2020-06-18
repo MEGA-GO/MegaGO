@@ -38,3 +38,26 @@ def analyse():
         },
         "invalid": list(not_present)
     }
+
+
+@app.route('/goterms', methods=["POST"])
+@cross_origin()
+def goterms():
+    data = request.get_json(silent=True)
+
+    if not data or "goterms" not in data:
+        return Response(status=422)
+
+    processed_terms = []
+    for term in data["goterms"]:
+        if term in GO_DAG:
+            current_term = GO_DAG[term]
+            processed_terms.append({
+                "code": term,
+                "namespace": current_term.namespace,
+                "name": current_term.name
+            })
+
+    return {
+        "goterms": processed_terms
+    }
