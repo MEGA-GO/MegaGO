@@ -1,6 +1,6 @@
 <template>
     <v-container fluid>
-        <div class="text-h3">Analyse</div>
+        <div class="text-h3">Analyze</div>
         <p class="text-body-1">
             Please provide two lists of GO-terms for which the domain-based similarity should be computed. These lists
             can either be pasted directly in the textarea's below, or you can upload a valid file containing one term
@@ -9,18 +9,18 @@
         <v-row>
             <v-col :cols="6">
                 <div class="text-h4 mb-2">Sample 1</div>
-                <go-input-component v-model="goList1"></go-input-component>
+                <go-input-component :disabled="loading" v-model="goList1"></go-input-component>
             </v-col>
             <v-col :cols="6">
                 <div class="text-h4 mb-2">Sample 2</div>
-                <go-input-component v-model="goList2"></go-input-component>
+                <go-input-component :disabled="loading" v-model="goList2"></go-input-component>
             </v-col>
         </v-row>
         <v-row>
             <div class="d-flex justify-center" style="width: 100%;">
-                <v-btn color="primary" @click="startAnalysis" :disabled="loading">
-                    <v-icon dark class="mr-2">mdi-play-circle</v-icon>
-                    Analyse!
+                <v-btn large :loading="loading" color="primary" @click="startAnalysis" :disabled="loading">
+                    <v-icon large dark class="mr-2">mdi-play-circle</v-icon>
+                    Analyze!
                 </v-btn>
             </div>
         </v-row>

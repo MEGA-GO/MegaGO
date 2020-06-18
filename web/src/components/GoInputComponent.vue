@@ -2,6 +2,7 @@
     <div>
         <v-textarea
             solo
+            :disabled="disabled"
             name="go-list"
             label="Please a provide a list of valid GO identifiers"
             hide-details
@@ -15,8 +16,8 @@
             :loading="loading">
         </v-textarea>
         <div>
-            <span style="float: left;">Or <a @click="selectFile">upload a file</a> directly</span>
-            <span style="float: right;">{{ this.contents ? this.contents.split("\n").length : 0 }} GO terms selected</span>
+            <span style="float: left;">Or <a @click="selectFile" :class="disabled ? 'disabled' : ''">upload a file</a> directly</span>
+            <span style="float: right;">{{ this.contents ? this.contents.split("\n").length : 0 }} GO terms in sample</span>
         </div>
         <input type="file" ref="fileUploader" accept="text/plain, .csv" style="display:none">
     </div>
@@ -31,6 +32,9 @@ import { Prop, Watch } from "vue-property-decorator";
 export default class GoInputComponent extends Vue {
     @Prop({ required: false, default: "" })
     private value!: string;
+
+    @Prop({ required: false, default: false })
+    private disabled!: boolean;
 
     private fileElement!: HTMLInputElement | null;
     private contents = "";
@@ -59,7 +63,7 @@ export default class GoInputComponent extends Vue {
     }
 
     private selectFile() {
-        if (this.fileElement) {
+        if (this.fileElement && !this.disabled) {
             this.fileElement.click();
         }
     }
@@ -86,5 +90,8 @@ export default class GoInputComponent extends Vue {
 </script>
 
 <style scoped>
-
+    .disabled {
+        color: gray;
+        cursor: default;
+    }
 </style>

@@ -13,9 +13,9 @@ def index():
     return 'index'
 
 
-@app.route('/analyse', methods=['POST'])
+@app.route('/analyze', methods=['POST'])
 @cross_origin()
-def analyse():
+def analyze():
     data = request.get_json(silent=True)
 
     # Check whether the given data is actually valid

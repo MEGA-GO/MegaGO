@@ -17,6 +17,9 @@ export interface GoState {
     // A list with 3 items that respectively represent the similarity for biological process, cellular component
     // and molecular function.
     similarities: Similarities;
+    // A list containing all GO terms that were submitted by the user, but that are not known to the application. These
+    // terms are thus not taken into account during the analysis.
+    invalidTerms: string[];
 }
 
 const state: GoState = {
@@ -26,7 +29,8 @@ const state: GoState = {
         biologicalProcess: NaN,
         cellularComponent: NaN,
         molecularFunction: NaN
-    }
+    },
+    invalidTerms: []
 };
 
 const getters: GetterTree<GoState, any> = {
@@ -40,6 +44,10 @@ const getters: GetterTree<GoState, any> = {
 
     similarities(state: GoState): Similarities {
         return state.similarities;
+    },
+
+    invalidTerms(state: GoState): string[] {
+        return state.invalidTerms;
     }
 };
 
@@ -58,6 +66,11 @@ const mutations: MutationTree<GoState> = {
         state.similarities.biologicalProcess = values[0];
         state.similarities.cellularComponent = values[1];
         state.similarities.molecularFunction = values[2];
+    },
+
+    UPDATE_INVALID_TERMS(state: GoState, terms: string[]) {
+        state.invalidTerms.splice(0, state.invalidTerms.length);
+        state.invalidTerms.push(...terms);
     }
 };
 
@@ -84,6 +97,10 @@ const actions: ActionTree<GoState, any> = {
             data.similarity.cellular_component,
             data.similarity.molecular_function
         ]);
+    },
+
+    updateInvalidTerms(store: ActionContext<GoState, any>, terms: string[]) {
+        store.commit("UPDATE_INVALID_TERMS", terms);
     }
 };
 

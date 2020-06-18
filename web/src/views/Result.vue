@@ -1,8 +1,12 @@
 <template>
     <v-container fluid>
         <div class="text-h3">Result</div>
-        <div class="text-h4 my-4">Similarities</div>
-        <div class="d-flex justify-space-between">
+        This page contains the similarity computed between the two samples you submitted during the previous step of the
+        analysis process.
+        <div class="text-h4 mt-4">Similarities</div>
+        Since GO terms that originate from different GO domains cannot be directly compared, we provide you with 3
+        different similarity values: one for each GO domain.
+        <div class="d-flex justify-space-between mt-4">
             <v-card style="width: 300px; height: 300px;" class="mr-8">
                 <div class="d-flex flex-column" style="height: 100%;">
                     <v-card-title>Biological process</v-card-title>
@@ -47,8 +51,10 @@
                 </v-responsive>
             </v-card>
         </div>
-        <div class="text-h4 my-4">Sample summary</div>
-        <v-row>
+        <div class="text-h4 mt-4">Sample summary</div>
+        You can find a summary of all GO terms that are present in both files below. You can filter or sort these tables
+        by domain, identifier or name.
+        <v-row class="mt-4">
             <v-col :cols="6">
                 <v-card>
                     <v-card-title>
