@@ -8,7 +8,7 @@
                     <v-card-title>Biological process</v-card-title>
                     <v-card-text class="d-flex justify-center align-center flex-grow-1 flex-column">
                         <img src="./../assets/biological_process.svg" alt="biological process icon" style="height: 150px;"/>
-                        <v-avatar color="teal" size="52" class="mt-8">
+                        <v-avatar :color="colorScale($store.getters.similarities.biologicalProcess)" size="60" class="mt-4">
                             <span class="white--text headline">
                                 {{ Math.round($store.getters.similarities.biologicalProcess * 100) }}%
                             </span>
@@ -22,7 +22,7 @@
                     <v-card-title>Cellular component</v-card-title>
                     <v-card-text class="d-flex justify-center align-center flex-grow-1 flex-column">
                         <img src="./../assets/cellular_component.svg" alt="cellular component icon" style="height: 150px;"/>
-                        <v-avatar color="teal" size="52" class="mt-8">
+                        <v-avatar :color="colorScale($store.getters.similarities.cellularComponent)" size="60" class="mt-4">
                             <span class="white--text headline">
                                 {{ Math.round($store.getters.similarities.cellularComponent * 100) }}%
                             </span>
@@ -37,7 +37,7 @@
                         <v-card-title>Molecular function</v-card-title>
                         <v-card-text class="d-flex justify-center align-center flex-grow-1 flex-column">
                             <img src="./../assets/molecular_function.svg" alt="molecular function icon" style="height: 150px;"/>
-                            <v-avatar color="teal" size="52" class="mt-8">
+                            <v-avatar :color="colorScale($store.getters.similarities.molecularFunction)" size="60" class="mt-4">
                                 <span class="white--text headline">
                                     {{ Math.round($store.getters.similarities.molecularFunction * 100) }}%
                                 </span>
@@ -77,12 +77,14 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 import GoListComponent from "./../components/GoListComponent.vue";
+import { scaleLinear } from "d3-scale";
 
 @Component({
     components: { GoListComponent }
 })
 export default class Result extends Vue {
-
+    // @ts-ignore
+    private colorScale = scaleLinear().domain([0, 1]).range(["#F44336", "#8BC34A"]);
 }
 </script>
 

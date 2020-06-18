@@ -20,6 +20,7 @@ module.exports = {
         "space-before-function-paren": ["error", "never"],
         "no-unused-expressions": "off",
         "no-trailing-spaces": "off",
-        "no-empty-function": "off"
+        "no-empty-function": "off",
+        "@typescript-eslint/ban-ts-ignore": "off"
     }
 }
