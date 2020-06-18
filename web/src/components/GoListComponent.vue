@@ -2,41 +2,51 @@
     <div style="height: 300px;" v-if="loading">
         <v-progress-circular indeterminate color="primary"></v-progress-circular>
     </div>
-    <v-virtual-scroll v-else height="300" :items="items" :item-height="50" :bench="50">
-        <template v-slot="{ item }">
-            <v-list-item>
-                <v-tooltip bottom>
-                    <template v-slot:activator="{ on, attrs }">
-                        <v-list-item-avatar>
-                            <v-avatar v-on="on" v-bind="attrs" :color="namespaceColor[item.namespace]" size="56" class="white--text">
-                                {{ namespaceAvatar[item.namespace] }}
-                            </v-avatar>
-                        </v-list-item-avatar>
-                    </template>
-                    <span>{{ humanReadableNamespace(item.namespace) }}</span>
-                </v-tooltip>
-
-                <v-list-item-content>
-                    <v-list-item-title>{{ item.code }} - {{ item.name }}</v-list-item-title>
-                </v-list-item-content>
-
-                <v-list-item-action>
-                    <v-btn
-                        depressed
-                        small
-                        :href="`http://amigo.geneontology.org/amigo/term/${item.code}`"
-                        target="_blank">
-                        View term
-                        <v-icon
-                            color="orange darken-4"
-                            right>
-                            mdi-open-in-new
-                        </v-icon>
-                    </v-btn>
-                </v-list-item-action>
-            </v-list-item>
+    <v-data-table
+        v-else
+        :items="items"
+        :headers="headers">
+        <template v-slot:item.name="{ item }">
+            <div style="max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" :title="item.name">
+                {{ item.name }}
+            </div>
         </template>
-    </v-virtual-scroll>
+    </v-data-table>
+<!--    <v-virtual-scroll v-else height="300" :items="items" :item-height="50" :bench="50">-->
+<!--        <template v-slot="{ item }">-->
+<!--            <v-list-item>-->
+<!--                <v-tooltip bottom>-->
+<!--                    <template v-slot:activator="{ on, attrs }">-->
+<!--                        <v-list-item-avatar>-->
+<!--                            <v-avatar v-on="on" v-bind="attrs" :color="namespaceColor[item.namespace]" size="56" class="white&#45;&#45;text">-->
+<!--                                {{ namespaceAvatar[item.namespace] }}-->
+<!--                            </v-avatar>-->
+<!--                        </v-list-item-avatar>-->
+<!--                    </template>-->
+<!--                    <span>{{ humanReadableNamespace(item.namespace) }}</span>-->
+<!--                </v-tooltip>-->
+
+<!--                <v-list-item-content>-->
+<!--                    <v-list-item-title>{{ item.code }} - {{ item.name }}</v-list-item-title>-->
+<!--                </v-list-item-content>-->
+
+<!--                <v-list-item-action>-->
+<!--                    <v-btn-->
+<!--                        depressed-->
+<!--                        small-->
+<!--                        :href="`http://amigo.geneontology.org/amigo/term/${item.code}`"-->
+<!--                        target="_blank">-->
+<!--                        View term-->
+<!--                        <v-icon-->
+<!--                            color="orange darken-4"-->
+<!--                            right>-->
+<!--                            mdi-open-in-new-->
+<!--                        </v-icon>-->
+<!--                    </v-btn>-->
+<!--                </v-list-item-action>-->
+<!--            </v-list-item>-->
+<!--        </template>-->
+<!--    </v-virtual-scroll>-->
 </template>
 
 <script lang="ts">
@@ -52,6 +62,21 @@ export default class GoListComponent extends Vue {
 
     private items: { code: string }[] = [];
     private loading = false;
+
+    private headers = [
+        {
+            text: "GO Term",
+            value: "code"
+        },
+        {
+            text: "Domain",
+            value: "namespace"
+        },
+        {
+            text: "Name",
+            value: "name"
+        }
+    ]
 
     private namespaceAvatar = {
         // eslint-disable-next-line quote-props
@@ -79,7 +104,11 @@ export default class GoListComponent extends Vue {
     private async onTermsChanged() {
         this.loading = true;
         this.items.splice(0, this.items.length);
-        this.items.push(...(await APICommunicator.getGoTerms(this.terms)));
+        const processedItems = await APICommunicator.getGoTerms(this.terms);
+        for (const item of processedItems) {
+            item.namespace = this.humanReadableNamespace(item.namespace);
+        }
+        this.items.push(...processedItems);
         this.loading = false;
     }
 

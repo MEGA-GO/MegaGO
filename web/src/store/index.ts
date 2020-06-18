@@ -97,6 +97,8 @@ const actions: ActionTree<GoState, any> = {
             data.similarity.cellular_component,
             data.similarity.molecular_function
         ]);
+
+        store.commit("UPDATE_INVALID_TERMS", data.invalid);
     },
 
     updateInvalidTerms(store: ActionContext<GoState, any>, terms: string[]) {

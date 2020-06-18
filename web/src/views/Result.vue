@@ -1,5 +1,11 @@
 <template>
     <v-container fluid>
+        <div v-if="$store.getters.invalidTerms.length > 0">
+            <v-alert type="warning">
+                Attention: the following GO terms you provided are invalid or unknown to our systems. These terms are
+                not being used during the similarity analysis: {{ $store.getters.invalidTerms.join(", ") }}
+            </v-alert>
+        </div>
         <div class="text-h3">Result</div>
         This page contains the similarity computed between the two samples you submitted during the previous step of the
         analysis process.

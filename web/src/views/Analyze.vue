@@ -1,5 +1,9 @@
 <template>
     <v-container fluid>
+        <v-alert type="error" v-if="errorVisible">
+            Could not complete your request. Please try again later...
+        </v-alert>
+
         <div class="text-h3">Analyze</div>
         <p class="text-body-1">
             Please provide two lists of GO-terms for which the domain-based similarity should be computed. These lists
@@ -42,6 +46,8 @@ export default class Analyse extends Vue {
 
     private loading = false;
 
+    private errorVisible = false;
+
     private created() {
         this.goList1 = this.$store.getters.goList1.join("\n");
         this.goList2 = this.$store.getters.goList2.join("\n");
@@ -62,10 +68,17 @@ export default class Analyse extends Vue {
     }
 
     private async startAnalysis() {
-        this.loading = true;
-        await this.$store.dispatch("analyse");
-        this.loading = false;
-        await this.$router.push("/result");
+        this.errorVisible = false;
+        try {
+            this.loading = true;
+            await this.$store.dispatch("analyse");
+            this.loading = false;
+            await this.$router.push("/result");
+        } catch (err) {
+            console.error(err);
+            this.loading = false;
+            this.errorVisible = true;
+        }
     }
 }
 </script>
