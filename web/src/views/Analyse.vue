@@ -1,5 +1,11 @@
 <template>
     <v-container fluid>
+        <div class="text-h3">Analyse</div>
+        <p class="text-body-1">
+            Please provide two lists of GO-terms for which the domain-based similarity should be computed. These lists
+            can either be pasted directly in the textarea's below, or you can upload a valid file containing one term
+            per line. Both txt-based and csv-based files are accepted.
+        </p>
         <v-row>
             <v-col :cols="6">
                 <div class="text-h4 mb-2">Sample 1</div>
@@ -59,10 +65,13 @@ export default class Analyse extends Vue {
         this.loading = true;
         await this.$store.dispatch("analyse");
         this.loading = false;
+        await this.$router.push("/result");
     }
 }
 </script>
 
-<style scoped>
-
+<style>
+    .v-banner__wrapper {
+        padding: 0;
+    }
 </style>

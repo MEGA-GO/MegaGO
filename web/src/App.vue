@@ -30,7 +30,9 @@
             </v-list>
         </v-navigation-drawer>
         <v-main class="mx-xs-2 mx-sm-4 mx-md-16">
-            <router-view></router-view>
+            <div style="max-width: 1200px;" class="flex-grow-1">
+                <router-view></router-view>
+            </div>
         </v-main>
     </v-app>
 </template>
@@ -67,3 +69,10 @@ export default class App extends Vue {
     ]
 }
 </script>
+
+<style>
+    .v-main__wrap {
+        display: flex;
+        justify-content: center;
+    }
+</style>

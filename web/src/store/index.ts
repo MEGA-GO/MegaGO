@@ -5,18 +5,28 @@ import SimilarityResponse from "@/logic/network/SimilarityResponse";
 
 Vue.use(Vuex);
 
+export type Similarities = {
+    biologicalProcess: number;
+    cellularComponent: number;
+    molecularFunction: number;
+};
+
 export interface GoState {
     goList1: string[];
     goList2: string[];
     // A list with 3 items that respectively represent the similarity for biological process, cellular component
     // and molecular function.
-    similarities: number[];
+    similarities: Similarities;
 }
 
 const state: GoState = {
     goList1: [],
     goList2: [],
-    similarities: []
+    similarities: {
+        biologicalProcess: NaN,
+        cellularComponent: NaN,
+        molecularFunction: NaN
+    }
 };
 
 const getters: GetterTree<GoState, any> = {
@@ -28,7 +38,7 @@ const getters: GetterTree<GoState, any> = {
         return state.goList2;
     },
 
-    similarities(state: GoState): number[] {
+    similarities(state: GoState): Similarities {
         return state.similarities;
     }
 };
@@ -45,8 +55,9 @@ const mutations: MutationTree<GoState> = {
     },
 
     UPDATE_SIMILARITIES(state: GoState, values: number[]) {
-        state.similarities.splice(0, state.similarities.length);
-        state.similarities.push(...values);
+        state.similarities.biologicalProcess = values[0];
+        state.similarities.cellularComponent = values[1];
+        state.similarities.molecularFunction = values[2];
     }
 };
 
