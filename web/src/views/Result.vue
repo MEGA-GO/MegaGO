@@ -2,7 +2,7 @@
     <v-container fluid>
         <div v-if="$store.getters.invalidTerms.length > 0">
             <v-alert type="warning">
-                Attention: the following GO terms you provided are invalid or unknown to our systems. These terms are
+                <span class="font-weight-bold">Attention!</span> The following GO terms you provided are invalid or unknown to our systems. These terms are
                 not being used during the similarity analysis: {{ $store.getters.invalidTerms.join(", ") }}
             </v-alert>
         </div>

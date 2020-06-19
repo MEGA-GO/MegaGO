@@ -34,6 +34,24 @@
                 <router-view></router-view>
             </div>
         </v-main>
+        <v-footer dark>
+            <div class="text-center" style="width: 100%;">
+                <v-btn
+                    v-for="icon in icons"
+                    :key="icon"
+                    :href="icon.link"
+                    target="_blank"
+                    class="mx-4"
+                    dark
+                    icon>
+                    <v-icon size="24px">{{ icon.icon }}</v-icon>
+                </v-btn>
+                <v-divider class="my-2"></v-divider>
+                <div>
+                    {{ new Date().getFullYear() }} — <strong>The Mega GO Project</strong>
+                </div>
+            </div>
+        </v-footer>
     </v-app>
 </template>
 
@@ -66,7 +84,18 @@ export default class App extends Vue {
             title: "Help",
             link: "/help"
         }
-    ]
+    ];
+
+    private icons = [{
+        icon: "mdi-github",
+        link: "https://github.com/MEGA-GO/Mega-GO"
+    }, {
+        icon: "mdi-language-python",
+        link: "https://pypi.org/project/megago"
+    }, {
+        icon: "mdi-newspaper-variant-outline",
+        link: ""
+    }];
 }
 </script>
 

@@ -76,10 +76,14 @@ const mutations: MutationTree<GoState> = {
 
 const actions: ActionTree<GoState, any> = {
     updateGoList1(store: ActionContext<GoState, any>, terms: string[]) {
+        // TODO should we filter duplicates?
+        terms = terms.filter((v, i) => terms.indexOf(v) === i);
         store.commit("UPDATE_GO_LIST1", terms);
     },
 
     updateGoList2(store: ActionContext<GoState, any>, terms: string[]) {
+        // TODO should we filter duplicates?
+        terms = terms.filter((v, i) => terms.indexOf(v) === i);
         store.commit("UPDATE_GO_LIST2", terms);
     },
 

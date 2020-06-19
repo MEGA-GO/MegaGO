@@ -2,16 +2,26 @@
     <div style="height: 300px;" v-if="loading">
         <v-progress-circular indeterminate color="primary"></v-progress-circular>
     </div>
-    <v-data-table
-        v-else
-        :items="items"
-        :headers="headers">
-        <template v-slot:item.name="{ item }">
-            <div style="max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" :title="item.name">
-                {{ item.name }}
-            </div>
-        </template>
-    </v-data-table>
+    <div v-else>
+        <v-text-field
+            v-model="search"
+            append-icon="mdi-magnify"
+            label="Search"
+            single-line
+            hide-details
+        ></v-text-field>
+        <v-data-table
+            :items="items"
+            :headers="headers"
+            :search="search">
+            <template v-slot:item.name="{ item }">
+                <div style="max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" :title="item.name">
+                    {{ item.name }}
+                </div>
+            </template>
+        </v-data-table>
+    </div>
+
 <!--    <v-virtual-scroll v-else height="300" :items="items" :item-height="50" :bench="50">-->
 <!--        <template v-slot="{ item }">-->
 <!--            <v-list-item>-->
@@ -62,6 +72,8 @@ export default class GoListComponent extends Vue {
 
     private items: { code: string }[] = [];
     private loading = false;
+
+    private search = "";
 
     private headers = [
         {
