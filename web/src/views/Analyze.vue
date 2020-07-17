@@ -10,6 +10,11 @@
             can either be pasted directly in the textarea's below, or you can upload a valid file containing one term
             per line. Both txt-based and csv-based files are accepted.
         </p>
+        <p>
+            See the following files for some valid example inputs:
+            <a href="/samples/sample7.txt" download="sample7.txt">sample7.txt</a>,
+            <a href="/samples/sample8.txt" download="sample8.txt">sample8.txt</a>.
+        </p>
         <v-row>
             <v-col :cols="6">
                 <div class="text-h4 mb-2">Sample 1</div>
