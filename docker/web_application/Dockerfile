@@ -15,7 +15,7 @@ ADD nginx.conf /etc/nginx/sites-enabled/webapp.conf
 
 # Copy the flask files to the correct directory
 RUN apt -y install python3-pip
-RUN pip3 install flask
+RUN pip3 install flask flask_cors
 RUN git clone https://github.com/MEGA-GO/Mega-GO
 RUN cd Mega-GO && git checkout feature/docker-container && pip3 install -U .
 RUN mkdir -p /home/app/webapp && cd Mega-GO && mv api/* /home/app/webapp/
