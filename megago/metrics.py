@@ -108,7 +108,7 @@ def get_deepest_common_ancestor(id1, id2, go_dag):
     return deepest_common_ancestor_cache[key]
 
 
-def rel_metric(go_id1, go_id2, go_dag, term_counts, highest_ic_anc):
+def rel_metric(c1, c2, go_dag, term_counts, highest_ic_anc):
     """calculate semantic similarity of the GO terms id1 and id2 using the rel metric
 
     Formula of the metric: (2 * info_content(mica) * (1 - freq(mica))) / (info_content(go_id1) + info_content(go_id2))
@@ -120,9 +120,9 @@ def rel_metric(go_id1, go_id2, go_dag, term_counts, highest_ic_anc):
 
     Parameters
     ----------
-    go_id1 : str
+    c1 : str
         GO term
-    go_id2 : str
+    c2 : str
         GO term
     go_dag : GODag object
         GODag object from the goatools package
@@ -138,28 +138,28 @@ def rel_metric(go_id1, go_id2, go_dag, term_counts, highest_ic_anc):
     """
     global rel_metric_cache
 
-    key = (go_id1, go_id2) if go_id1 < go_id2 else (go_id2, go_id1)
+    key = (c1, c2) if c1 < c2 else (c2, c1)
     if key in rel_metric_cache:
         return rel_metric_cache[key]
 
-    if (go_id1 not in go_dag) or (go_id2 not in go_dag):
+    if (c1 not in go_dag) or (c2 not in go_dag):
         return NAN_VALUE
 
-    go_term1 = go_dag[go_id1]
-    go_term2 = go_dag[go_id2]
+    go_term1 = go_dag[c1]
+    go_term2 = go_dag[c2]
     if go_term1.namespace == go_term2.namespace:
-        mica_goid = get_deepest_common_ancestor(go_id1, go_id2, go_dag)
-        freq = get_frequency(mica_goid, term_counts, go_dag)
-        info_content = get_info_content(mica_goid, term_counts, go_dag)
-        info_content1 = get_info_content(go_id1, term_counts, go_dag)
-        info_content2 = get_info_content(go_id2, term_counts, go_dag)
+        lca_goid = get_deepest_common_ancestor(c1, c2, go_dag)
+        freq = get_frequency(lca_goid, term_counts, go_dag)
+        info_content_lca = get_info_content(lca_goid, term_counts, go_dag)
+        info_content1 = get_info_content(c1, term_counts, go_dag)
+        info_content2 = get_info_content(c2, term_counts, go_dag)
         if info_content1 == 0:
-            info_content1 = highest_ic_anc[go_id1]
+            info_content1 = highest_ic_anc[c1]
         if info_content2 == 0:
-            info_content2 = highest_ic_anc[go_id2]
+            info_content2 = highest_ic_anc[c2]
         if info_content1 + info_content2 == 0:
             return 0
-        result = (2 * info_content * (1 - freq)) / (info_content1 + info_content2)
+        result = (2 * info_content_lca * (1 - freq)) / (info_content1 + info_content2)
     else:    # if goterms are from different GO namespaces (molecular function, cellular component, biological process)
         result = NAN_VALUE
     rel_metric_cache[key] = result
