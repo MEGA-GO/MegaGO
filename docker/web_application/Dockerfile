@@ -18,8 +18,10 @@ RUN apt -y install python3-pip
 RUN pip3 install flask flask_cors
 RUN git clone https://github.com/MEGA-GO/Mega-GO
 RUN cd Mega-GO && git checkout feature/docker-container && pip3 install -U .
-RUN mkdir -p /home/app/webapp && cd Mega-GO && mv api/* /home/app/webapp/
+RUN mkdir -p /home/app/webapp/api && cd Mega-GO && mv api/* /home/app/webapp/api
 RUN chown -R app:app /home/app/webapp
+
+#RUN cd Mega-GO/web && npm run build && mv dist/* /home/app/webapp
 
 # Remove this file to indicate that nginx can be started
 RUN rm -f /etc/service/nginx/down

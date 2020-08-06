@@ -8,11 +8,6 @@ app = Flask(__name__)
 GO_DAG = get_default_go_dag()
 
 
-@app.route('/')
-def index():
-    return 'index'
-
-
 @app.route('/analyze', methods=['POST'])
 @cross_origin()
 def analyze():
