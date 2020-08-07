@@ -28,6 +28,11 @@ RUN cd Mega-GO/web && npm install && npm run build && mv dist/* /home/app/webapp
 
 RUN chown -R app:app /home/app/webapp
 
+# Generate a self-signed certificate for the image that acts as a placeholder for a real SSL certificate that can
+# optionally be provided.
+RUN openssl req -x509 -newkey rsa:4096 -keyout private_key.pem -out certificate.pem -days 1825 -nodes -subj "/C=BE/ST=East-Flanders/L=Ghent/O=MegaGO/OU=NA/CN=localhost"
+RUN mkdir -p /home/app/certificates && mv *.pem /home/app/certificates
+
 # Remove this file to indicate that nginx can be started
 RUN rm -f /etc/service/nginx/down
 #### End of our own build instructions
