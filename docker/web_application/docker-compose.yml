@@ -1,0 +1,14 @@
+# Docker compose file for deploying the image on the MegaGO UGent server.
+
+version: '3.7'
+services:
+  web:
+    build: .
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - /etc/letsencrypt/live/megago.ugent.be:/home/app/certificates
+      # Due to the default certificate files being symlinks, we also have to mount
+      # the directory to which these certificates link.
+      - /etc/letsencrypt/archive:/home/archive
