@@ -20,7 +20,7 @@ RUN pip3 install flask flask_cors
 RUN git clone https://github.com/MEGA-GO/Mega-GO
 
 # Install MegaGO as a PiP package from local source
-RUN cd Mega-GO && git checkout feature/docker-container && pip3 install -U .
+RUN cd Mega-GO && pip3 install -U .
 RUN mkdir -p /home/app/webapp/api && cd Mega-GO && mv api/* /home/app/webapp/api
 
 # Build frontend and move newly generated files
