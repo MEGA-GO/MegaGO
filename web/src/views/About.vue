@@ -10,41 +10,37 @@
             <div class="text-h4">Our team</div>
             <v-container fluid>
                 <v-row>
-                    <v-col :cols="4">
+                    <v-col :md="4" :sm="12">
                         <team-card name="Henning Schiebenhoefer" affiliation="Robert Koch Institut, Germany"></team-card>
                     </v-col>
-                    <v-col :cols="4">
+                    <v-col :md="4" :sm="12">
                         <team-card
                             name="Tim Van Den Bossche"
                             affiliation="Ghent University, Belgium"
                             :profile-picture="require('./../assets/tim_profile.jpg')">
                         </team-card>
                     </v-col>
-                    <v-col :cols="4">
+                    <v-col :md="4" :sm="12">
                         <team-card
                             name="Pieter Verschaffelt"
                             affiliation="Ghent University, Belgium"
                             :profile-picture="require('./../assets/pieter_profile.jpg')">
                         </team-card>
                     </v-col>
-                </v-row>
-                <v-row>
-                    <v-col :cols="4">
+                    <v-col :md="4" :sm="12">
                         <team-card
                             name="Bart Mesuere"
                             affiliation="Ghent University, Belgium"
                             :profile-picture="require('./../assets/bart_profile.jpeg')">
                         </team-card>
                     </v-col>
-                    <v-col :cols="4">
+                    <v-col :md="4" :sm="12">
                         <team-card name="Wassim Gabriel" affiliation="Technische Universität München, Germany"></team-card>
                     </v-col>
-                    <v-col :cols="4">
+                    <v-col :md="4" :sm="12">
                         <team-card name="Michał Burdukiewicz" affiliation="Warsaw University of Technology, Poland"></team-card>
                     </v-col>
-                </v-row>
-                <v-row>
-                    <v-col :cols="4">
+                    <v-col :md="4" :sm="12">
                         <team-card name="Alessio Soggiu" affiliation="University of Milan, Italy"></team-card>
                     </v-col>
                 </v-row>

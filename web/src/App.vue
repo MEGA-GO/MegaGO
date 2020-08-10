@@ -38,7 +38,7 @@
             <div class="text-center" style="width: 100%;">
                 <v-btn
                     v-for="icon in icons"
-                    :key="icon"
+                    :key="icon.link"
                     :href="icon.link"
                     target="_blank"
                     class="mx-4"
