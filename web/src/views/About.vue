@@ -41,7 +41,11 @@
                         <team-card name="Michał Burdukiewicz" affiliation="Warsaw University of Technology, Poland"></team-card>
                     </v-col>
                     <v-col :md="4" :sm="12">
-                        <team-card name="Alessio Soggiu" affiliation="University of Milan, Italy"></team-card>
+                        <team-card
+                            name="Alessio Soggiu"
+                            affiliation="University of Milan, Italy"
+                            :profile-picture="require('./../assets/allesio_profile.png')">
+                        </team-card>
                     </v-col>
                 </v-row>
             </v-container>
