@@ -11,7 +11,11 @@
             <v-container fluid>
                 <v-row>
                     <v-col :md="4" :sm="12">
-                        <team-card name="Henning Schiebenhoefer" affiliation="Robert Koch Institut, Germany"></team-card>
+                        <team-card
+                            name="Henning Schiebenhoefer"
+                            affiliation="Robert Koch Institut, Germany"
+                            :profile-picture="require('./../assets/henning_profile.jpg')">
+                        </team-card>
                     </v-col>
                     <v-col :md="4" :sm="12">
                         <team-card
