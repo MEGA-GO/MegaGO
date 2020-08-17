@@ -7,6 +7,7 @@ from .constants import NAN_VALUE
 
 deepest_common_ancestor_cache = dict()
 rel_metric_cache = dict()
+lin_metric_cache = dict()
 
 
 def get_frequency(go_id, term_counts, go_dag):
@@ -166,6 +167,63 @@ def rel_metric(c1, c2, go_dag, term_counts, highest_ic_anc):
     return result
 
 
+def lin_metric(c1, c2, go_dag, term_counts, highest_ic_anc):
+    """calculate semantic similarity of the GO terms id1 and id2 using the rel metric
+
+    Formula of the metric: (2 * info_content(mica)) / (info_content(go_id1) + info_content(go_id2))
+    where mica is the most informative common ancestor of go_id1 and go_id2.
+    Metric is implemented according to: Schlicker, A., Domingues, F.S., Rahnenführer, J. et al. A new measure for
+    functional similarity of gene products based on Gene Ontology. BMC Bioinformatics 7, 302 (2006)
+    doi:10.1186/1471-2105-7-302
+
+
+    Parameters
+    ----------
+    c1 : str
+        GO term
+    c2 : str
+        GO term
+    go_dag : GODag object
+        GODag object from the goatools package
+    term_counts : dict
+        dictionary: key: GO terms, values: number of occurrences of GO term and its children in body of evidence
+
+    Returns
+    -------
+    float
+        if go_id1 and go_id2 are from different GO namespaces or either of them misses in the go_dag: NAN_VALUE
+        else: rel metric
+
+    """
+    global lin_metric_cache
+
+    key = (c1, c2) if c1 < c2 else (c2, c1)
+    if key in lin_metric_cache:
+        return lin_metric_cache[key]
+
+    if (c1 not in go_dag) or (c2 not in go_dag):
+        return NAN_VALUE
+
+    go_term1 = go_dag[c1]
+    go_term2 = go_dag[c2]
+    if go_term1.namespace == go_term2.namespace:
+        lca_goid = get_deepest_common_ancestor(c1, c2, go_dag)
+        info_content_lca = get_info_content(lca_goid, term_counts, go_dag)
+        info_content1 = get_info_content(c1, term_counts, go_dag)
+        info_content2 = get_info_content(c2, term_counts, go_dag)
+        if info_content1 == 0:
+            info_content1 = highest_ic_anc[c1]
+        if info_content2 == 0:
+            info_content2 = highest_ic_anc[c2]
+        if info_content1 + info_content2 == 0:
+            return 0
+        result = (2 * info_content_lca) / (info_content1 + info_content2)
+    else:    # if goterms are from different GO namespaces (molecular function, cellular component, biological process)
+        result = NAN_VALUE
+    lin_metric_cache[key] = result
+    return result
+
+
 def _do_compute_max_sim_value(go_list1, go_list2, go_dag, term_counts, highest_ic_anc, similarity_method=rel_metric):
     for id1 in go_list1:
         similarity_values = []
@@ -186,8 +244,6 @@ def _do_compute_max_sim_value(go_list1, go_list2, go_dag, term_counts, highest_i
 #
 # def parallel_compute_bma_metric(go_list1, go_list2, term_counts, go_dag, highest_ic_anc, similarity_method=rel_metric):
 #
-
-
 
 
 def compute_bma_metric(go_list1, go_list2, term_counts, go_dag, highest_ic_anc, similarity_method=rel_metric):

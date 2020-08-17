@@ -16,7 +16,7 @@ from goatools.obo_parser import GODag
 
 from .constants import GO_DAG_FILE_PATH
 from .precompute_highest_ic import get_highest_ic
-from .metrics import compute_bma_metric
+from .metrics import compute_bma_metric, lin_metric, rel_metric
 from .precompute_frequency_counts import get_frequency_counts
 
 
@@ -205,7 +205,8 @@ def run_comparison(go_list_1, go_list_2, go_dag=None):
             split_per_domain_2[i],
             freq_dict,
             go_dag,
-            highest_ic_anc
+            highest_ic_anc,
+            similarity_method=rel_metric
         ) for i in range(len(GO_DOMAINS))
     )
 
