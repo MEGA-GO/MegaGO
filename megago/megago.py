@@ -260,13 +260,13 @@ def plot_similarity(list_similarity_values):
 def process(options):
     # The GO-terms that need to be compared can be given as a CSV-file or inline in the command as a ";" delimited
     # string.
-    if re.match(".*.[^.]+$", options.sample_1):
+    if re.match(".*\.[^.]+$", options.sample_1):
         logging.info("Processing sample 1 from %s", options.sample_1)
         go_list_1 = read_input(open(options.sample_1, 'r'))
     else:
         go_list_1 = options.sample_1.split(';')
 
-    if re.match(".*.[^.]+$", options.sample_2):
+    if re.match(".*\.[^.]+$", options.sample_2):
         logging.info("Processing sample 2 from %s", options.sample_2)
         go_list_2 = read_input(open(options.sample_2, 'r'))
     else:
