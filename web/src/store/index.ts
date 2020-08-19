@@ -20,6 +20,8 @@ export interface GoState {
     // A list containing all GO terms that were submitted by the user, but that are not known to the application. These
     // terms are thus not taken into account during the analysis.
     invalidTerms: string[];
+    // Part of the analysis that has been done at this point.
+    progress: number;
 }
 
 const state: GoState = {
@@ -30,7 +32,8 @@ const state: GoState = {
         cellularComponent: NaN,
         molecularFunction: NaN
     },
-    invalidTerms: []
+    invalidTerms: [],
+    progress: 0
 };
 
 const getters: GetterTree<GoState, any> = {
@@ -48,6 +51,10 @@ const getters: GetterTree<GoState, any> = {
 
     invalidTerms(state: GoState): string[] {
         return state.invalidTerms;
+    },
+
+    progress(state: GoState): number {
+        return state.progress;
     }
 };
 
@@ -71,6 +78,10 @@ const mutations: MutationTree<GoState> = {
     UPDATE_INVALID_TERMS(state: GoState, terms: string[]) {
         state.invalidTerms.splice(0, state.invalidTerms.length);
         state.invalidTerms.push(...terms);
+    },
+
+    UPDATE_PROGRESS(state: GoState, value: number) {
+        state.progress = value;
     }
 };
 
@@ -89,18 +100,31 @@ const actions: ActionTree<GoState, any> = {
      * Compute the similarities between the two sets of GO terms that are currently set.
      */
     async analyse(store: ActionContext<GoState, any>) {
-        const data: SimilarityResponse = await APICommunicator.computeSimilarities(
+        const id: string = await APICommunicator.computeSimilarities(
             store.getters.goList1,
             store.getters.goList2
         );
 
-        store.commit("UPDATE_SIMILARITIES", [
-            data.similarity.biological_process,
-            data.similarity.cellular_component,
-            data.similarity.molecular_function
-        ]);
+        await new Promise<void>(resolve => {
+            // Keep requesting a progress update, until the current progress is 1. After that we can safely request the
+            // computed results and continue...
+            const interval = setInterval(async() => {
+                const progress = await APICommunicator.getProgress(id);
+                store.commit("UPDATE_PROGRESS", progress);
+                if (progress === 1) {
+                    const data: SimilarityResponse = await APICommunicator.getResults(id);
+                    store.commit("UPDATE_SIMILARITIES", [
+                        data.similarity.biological_process,
+                        data.similarity.cellular_component,
+                        data.similarity.molecular_function
+                    ]);
+                    store.commit("UPDATE_INVALID_TERMS", data.invalid);
 
-        store.commit("UPDATE_INVALID_TERMS", data.invalid);
+                    clearInterval(interval);
+                    resolve();
+                }
+            }, 2000);
+        });
     },
 
     updateInvalidTerms(store: ActionContext<GoState, any>, terms: string[]) {

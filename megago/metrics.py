@@ -158,9 +158,10 @@ def rel_metric(c1, c2, go_dag, term_counts, highest_ic_anc):
 
 
 def compute_similarity_method(params):
-    (go_list1, go_list2, term_counts, go_dag_path, highest_ic_anc, similarity_method) = params
+    (go_list1, go_list2, term_counts, go_dag_path, highest_ic_anc, similarity_method, progress) = params
     go_dag = GODag(GO_DAG_FILE_PATH, prt=open(os.devnull, 'w'))
     result = dict()
+
     for id1 in go_list1:
         for id2 in go_list2:
             key = (id1, id2) if id1 < id2 else (id2, id1)
@@ -168,7 +169,7 @@ def compute_similarity_method(params):
     return result
 
 
-def compute_bma_metric(go_list1, go_list2, term_counts, go_dag, highest_ic_anc, similarity_method=rel_metric):
+def compute_bma_metric(go_list1, go_list2, term_counts, go_dag, highest_ic_anc, progress_listener=None, similarity_method=rel_metric):
     """calculate the best match average similarity of the two provided sets of go terms
 
     For each GO term in go_list1, the similarity value of the most similar term from go_list2 is picked. The sum of
@@ -188,6 +189,8 @@ def compute_bma_metric(go_list1, go_list2, term_counts, go_dag, highest_ic_anc, 
         GODag object from the goatools package
     highest_ic_anc : dict
         dictionary: key: GO terms, values: information content of the ancestor with the highest information content
+    progress_listener: function (number) => void
+        is called with the current progress value as a float in [0, 1]
     similarity_method : function
         function with the following arguments: id1, id2, go_dag, term_counts, highest_ic_anc
         must return a float or the value of the global variable NAN_VALUE.
@@ -212,11 +215,14 @@ def compute_bma_metric(go_list1, go_list2, term_counts, go_dag, highest_ic_anc, 
         chunks = []
         for process in range(PROCESSES):
             if process == PROCESSES - 1:
-                chunks.append((unique_list1[chunk_size * process:], unique_list2, term_counts, GO_DAG_FILE_PATH, highest_ic_anc, similarity_method))
+                chunks.append((unique_list1[chunk_size * process:], unique_list2, term_counts, GO_DAG_FILE_PATH, highest_ic_anc, similarity_method, progress_listener))
             else:
-                chunks.append((unique_list1[chunk_size * process: chunk_size * (process + 1)], unique_list2, term_counts, GO_DAG_FILE_PATH, highest_ic_anc, similarity_method))
+                chunks.append((unique_list1[chunk_size * process: chunk_size * (process + 1)], unique_list2, term_counts, GO_DAG_FILE_PATH, highest_ic_anc, similarity_method, progress_listener))
         for result in executor.map(compute_similarity_method, chunks):
             sim_method_dict.update(result)
+
+    total_to_process = len(go_list1) + len(go_list2)
+    processed = 0
 
     summation_set12 = 0.0
     summation_set21 = 0.0
@@ -237,6 +243,7 @@ def compute_bma_metric(go_list1, go_list2, term_counts, go_dag, highest_ic_anc, 
             if value > max_value:
                 max_value = value
         summation_set21 += max_value
+
     if (len(go_list1) + len(go_list2)) == 0:
         bma = 0
     else:

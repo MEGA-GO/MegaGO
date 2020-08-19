@@ -13,11 +13,13 @@ import re
 import os
 
 from goatools.obo_parser import GODag
+from progress.bar import IncrementalBar
 
 from .constants import GO_DAG_FILE_PATH
 from .precompute_highest_ic import get_highest_ic
 from .metrics import compute_bma_metric
 from .precompute_frequency_counts import get_frequency_counts
+
 
 
 EXIT_COMMAND_LINE_ERROR = 2
@@ -174,7 +176,7 @@ def get_default_go_dag():
     return GODag(GO_DAG_FILE_PATH, prt=open(os.devnull, 'w'))
 
 
-def run_comparison(go_list_1, go_list_2, go_dag=None):
+def run_comparison(go_list_1, go_list_2, go_dag=None, progress=None):
     """ Compute the pairwise similarity values for all rows from the given file.
 
     Parameters
@@ -199,15 +201,33 @@ def run_comparison(go_list_1, go_list_2, go_dag=None):
     split_per_domain_1 = split_per_domain(go_list_1, go_dag)
     split_per_domain_2 = split_per_domain(go_list_2, go_dag)
 
-    return tuple(
-        compute_bma_metric(
-            split_per_domain_1[i],
-            split_per_domain_2[i],
-            freq_dict,
-            go_dag,
-            highest_ic_anc
-        ) for i in range(len(GO_DOMAINS))
-    )
+    output = list()
+
+    total_length = len(go_list_1) + len(go_list_2)
+    done = 0
+
+    def progress_reporter(batch_size, processed, total):
+        nonlocal done
+        if progress:
+            done += batch_size
+            progress(done / total_length)
+
+    for i in range(len(GO_DOMAINS)):
+        output.append(
+            compute_bma_metric(
+                split_per_domain_1[i],
+                split_per_domain_2[i],
+                freq_dict,
+                go_dag,
+                highest_ic_anc,
+                progress_reporter
+            )
+        )
+
+    if progress:
+        progress(1)
+
+    return tuple(output)
 
 
 def find_non_existing_terms(go_list, go_dag):
@@ -240,13 +260,13 @@ def plot_similarity(list_similarity_values):
 def process(options):
     # The GO-terms that need to be compared can be given as a CSV-file or inline in the command as a ";" delimited
     # string.
-    if options.sample_1.endswith('.csv'):
+    if re.match(".*\.[^.]+$", options.sample_1):
         logging.info("Processing sample 1 from %s", options.sample_1)
         go_list_1 = read_input(open(options.sample_1, 'r'))
     else:
         go_list_1 = options.sample_1.split(';')
 
-    if options.sample_2.endswith('.csv'):
+    if re.match(".*\.[^.]+$", options.sample_2):
         logging.info("Processing sample 2 from %s", options.sample_2)
         go_list_2 = read_input(open(options.sample_2, 'r'))
     else:
