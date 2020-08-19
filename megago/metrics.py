@@ -1,12 +1,14 @@
 import math
+import concurrent.futures
+import os
 
+from goatools.obo_parser import GODag
 from goatools.semantic import deepest_common_ancestor
 from goatools.gosubdag.gosubdag import GoSubDag
 
-from .constants import NAN_VALUE
+from .constants import NAN_VALUE, GO_DAG_FILE_PATH
 
-deepest_common_ancestor_cache = dict()
-rel_metric_cache = dict()
+PROCESSES = 6
 
 
 def get_frequency(go_id, term_counts, go_dag):
@@ -101,11 +103,7 @@ def get_ic_of_most_informative_ancestor(id, term_counts, go_dag):
 
 
 def get_deepest_common_ancestor(id1, id2, go_dag):
-    global deepest_common_ancestor_cache
-    key = (id1, id2) if id1 < id2 else (id2, id1)
-    if key not in deepest_common_ancestor_cache:
-        deepest_common_ancestor_cache[key] = deepest_common_ancestor([id1, id2], go_dag)
-    return deepest_common_ancestor_cache[key]
+    return deepest_common_ancestor([id1, id2], go_dag)
 
 
 def rel_metric(c1, c2, go_dag, term_counts, highest_ic_anc):
@@ -136,11 +134,6 @@ def rel_metric(c1, c2, go_dag, term_counts, highest_ic_anc):
         else: rel metric
 
     """
-    global rel_metric_cache
-
-    key = (c1, c2) if c1 < c2 else (c2, c1)
-    if key in rel_metric_cache:
-        return rel_metric_cache[key]
 
     if (c1 not in go_dag) or (c2 not in go_dag):
         return NAN_VALUE
@@ -159,35 +152,20 @@ def rel_metric(c1, c2, go_dag, term_counts, highest_ic_anc):
             info_content2 = highest_ic_anc[c2]
         if info_content1 + info_content2 == 0:
             return 0
-        result = (2 * info_content_lca * (1 - freq)) / (info_content1 + info_content2)
+        return (2 * info_content_lca * (1 - freq)) / (info_content1 + info_content2)
     else:    # if goterms are from different GO namespaces (molecular function, cellular component, biological process)
-        result = NAN_VALUE
-    rel_metric_cache[key] = result
-    return result
+        return NAN_VALUE
 
 
-def _do_compute_max_sim_value(go_list1, go_list2, go_dag, term_counts, highest_ic_anc, similarity_method=rel_metric):
+def compute_similarity_method(params):
+    (go_list1, go_list2, term_counts, go_dag_path, highest_ic_anc, similarity_method) = params
+    go_dag = GODag(GO_DAG_FILE_PATH, prt=open(os.devnull, 'w'))
+    result = dict()
     for id1 in go_list1:
-        similarity_values = []
         for id2 in go_list2:
-            similarity_values.append(similarity_method(id1, id2, go_dag, term_counts, highest_ic_anc))
-
-
-# def _do_compute_summation_set_value(go_list1, go_list2, term_counts, go_dag, highest_ic_anc, similarity_method=rel_metric):
-#     # go_list2 must stay the same between all processes
-#     summation_set = 0.0
-#     for id1 in go_list1:
-#         similarity_values = []
-#         for id2 in go_list2:
-#             similarity_values.append(similarity_method(id1, id2, go_dag, term_counts, highest_ic_anc))
-#         summation_set += max(similarity_values + [NAN_VALUE])
-#     return summation_set
-#
-#
-# def parallel_compute_bma_metric(go_list1, go_list2, term_counts, go_dag, highest_ic_anc, similarity_method=rel_metric):
-#
-
-
+            key = (id1, id2) if id1 < id2 else (id2, id1)
+            result[key] = similarity_method(id1, id2, go_dag, term_counts, highest_ic_anc)
+    return result
 
 
 def compute_bma_metric(go_list1, go_list2, term_counts, go_dag, highest_ic_anc, similarity_method=rel_metric):
@@ -221,18 +199,44 @@ def compute_bma_metric(go_list1, go_list2, term_counts, go_dag, highest_ic_anc, 
 
     """
 
+    unique_list1 = list(set(go_list1))
+    unique_list2 = list(set(go_list2))
+
+    # First compute the similarity method for each of the pairs from the input. The similarity method must be symmetric
+    # for this to work properly.
+    chunk_size = math.ceil(len(unique_list1) / PROCESSES)
+    # Store the results of the similarity method in this dictionary
+    sim_method_dict = dict()
+
+    with concurrent.futures.ProcessPoolExecutor(max_workers=PROCESSES) as executor:
+        chunks = []
+        for process in range(PROCESSES):
+            if process == PROCESSES - 1:
+                chunks.append((unique_list1[chunk_size * process:], unique_list2, term_counts, GO_DAG_FILE_PATH, highest_ic_anc, similarity_method))
+            else:
+                chunks.append((unique_list1[chunk_size * process: chunk_size * (process + 1)], unique_list2, term_counts, GO_DAG_FILE_PATH, highest_ic_anc, similarity_method))
+        for result in executor.map(compute_similarity_method, chunks):
+            sim_method_dict.update(result)
+
     summation_set12 = 0.0
     summation_set21 = 0.0
+
     for id1 in go_list1:
-        similarity_values = []
+        max_value = 0.0
         for id2 in go_list2:
-            similarity_values.append(similarity_method(id1, id2, go_dag, term_counts, highest_ic_anc))
-        summation_set12 += max(similarity_values + [NAN_VALUE])
+            key = (id1, id2) if id1 < id2 else (id2, id1)
+            value = sim_method_dict[key]
+            if value > max_value:
+                max_value = value
+        summation_set12 += max_value
     for id2 in go_list2:
-        similarity_values = []
+        max_value = 0.0
         for id1 in go_list1:
-            similarity_values.append(similarity_method(id2, id1, go_dag, term_counts, highest_ic_anc))
-        summation_set21 += max(similarity_values + [NAN_VALUE])
+            key = (id1, id2) if id1 < id2 else (id2, id1)
+            value = sim_method_dict[key]
+            if value > max_value:
+                max_value = value
+        summation_set21 += max_value
     if (len(go_list1) + len(go_list2)) == 0:
         bma = 0
     else:
