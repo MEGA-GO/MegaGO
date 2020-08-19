@@ -5,6 +5,7 @@ from goatools.gosubdag.gosubdag import GoSubDag
 
 from .constants import NAN_VALUE
 
+
 deepest_common_ancestor_cache = dict()
 rel_metric_cache = dict()
 
@@ -173,24 +174,7 @@ def _do_compute_max_sim_value(go_list1, go_list2, go_dag, term_counts, highest_i
             similarity_values.append(similarity_method(id1, id2, go_dag, term_counts, highest_ic_anc))
 
 
-# def _do_compute_summation_set_value(go_list1, go_list2, term_counts, go_dag, highest_ic_anc, similarity_method=rel_metric):
-#     # go_list2 must stay the same between all processes
-#     summation_set = 0.0
-#     for id1 in go_list1:
-#         similarity_values = []
-#         for id2 in go_list2:
-#             similarity_values.append(similarity_method(id1, id2, go_dag, term_counts, highest_ic_anc))
-#         summation_set += max(similarity_values + [NAN_VALUE])
-#     return summation_set
-#
-#
-# def parallel_compute_bma_metric(go_list1, go_list2, term_counts, go_dag, highest_ic_anc, similarity_method=rel_metric):
-#
-
-
-
-
-def compute_bma_metric(go_list1, go_list2, term_counts, go_dag, highest_ic_anc, similarity_method=rel_metric):
+def compute_bma_metric(go_list1, go_list2, term_counts, go_dag, highest_ic_anc, progress_listener=None, similarity_method=rel_metric):
     """calculate the best match average similarity of the two provided sets of go terms
 
     For each GO term in go_list1, the similarity value of the most similar term from go_list2 is picked. The sum of
@@ -210,6 +194,8 @@ def compute_bma_metric(go_list1, go_list2, term_counts, go_dag, highest_ic_anc, 
         GODag object from the goatools package
     highest_ic_anc : dict
         dictionary: key: GO terms, values: information content of the ancestor with the highest information content
+    progress_listener: function (number, number) => void
+        is called with 3 numbers: (batch_size, current, total)
     similarity_method : function
         function with the following arguments: id1, id2, go_dag, term_counts, highest_ic_anc
         must return a float or the value of the global variable NAN_VALUE.
@@ -221,18 +207,31 @@ def compute_bma_metric(go_list1, go_list2, term_counts, go_dag, highest_ic_anc, 
 
     """
 
+    total_to_process = len(go_list1) + len(go_list2)
+    processed = 0
+
     summation_set12 = 0.0
     summation_set21 = 0.0
     for id1 in go_list1:
-        similarity_values = []
+        max_value = 0.0
         for id2 in go_list2:
-            similarity_values.append(similarity_method(id1, id2, go_dag, term_counts, highest_ic_anc))
-        summation_set12 += max(similarity_values + [NAN_VALUE])
+            value = similarity_method(id1, id2, go_dag, term_counts, highest_ic_anc)
+            if value != NAN_VALUE and value > max_value:
+                max_value = value
+        summation_set12 += max_value
+        processed += 1
+        if progress_listener and processed % 100 == 0:
+            progress_listener(100, processed, total_to_process)
     for id2 in go_list2:
-        similarity_values = []
+        max_value = 0.0
         for id1 in go_list1:
-            similarity_values.append(similarity_method(id2, id1, go_dag, term_counts, highest_ic_anc))
-        summation_set21 += max(similarity_values + [NAN_VALUE])
+            value = similarity_method(id2, id1, go_dag, term_counts, highest_ic_anc)
+            if value != NAN_VALUE and value > max_value:
+                max_value = value
+        summation_set21 += max_value
+        processed += 1
+        if progress_listener and processed % 100 == 0:
+            progress_listener(100, processed, total_to_process)
     if (len(go_list1) + len(go_list2)) == 0:
         bma = 0
     else:
