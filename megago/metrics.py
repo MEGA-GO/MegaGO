@@ -158,7 +158,7 @@ def rel_metric(c1, c2, go_dag, term_counts, highest_ic_anc):
 
 
 def compute_similarity_method(params):
-    (go_list1, go_list2, term_counts, go_dag_path, highest_ic_anc, similarity_method, progress) = params
+    (go_list1, go_list2, term_counts, go_dag_path, highest_ic_anc, similarity_method) = params
     go_dag = GODag(GO_DAG_FILE_PATH, prt=open(os.devnull, 'w'))
     result = dict()
 
@@ -190,7 +190,7 @@ def compute_bma_metric(go_list1, go_list2, term_counts, go_dag, highest_ic_anc, 
     highest_ic_anc : dict
         dictionary: key: GO terms, values: information content of the ancestor with the highest information content
     progress_listener: function (number) => void
-        is called with the current progress value as a float in [0, 1]
+        is called with comparisons that currently have been performed
     similarity_method : function
         function with the following arguments: id1, id2, go_dag, term_counts, highest_ic_anc
         must return a float or the value of the global variable NAN_VALUE.
@@ -215,14 +215,12 @@ def compute_bma_metric(go_list1, go_list2, term_counts, go_dag, highest_ic_anc, 
         chunks = []
         for process in range(PROCESSES):
             if process == PROCESSES - 1:
-                chunks.append((unique_list1[chunk_size * process:], unique_list2, term_counts, GO_DAG_FILE_PATH, highest_ic_anc, similarity_method, progress_listener))
+                chunks.append((unique_list1[chunk_size * process:], unique_list2, term_counts, GO_DAG_FILE_PATH, highest_ic_anc, similarity_method))
             else:
-                chunks.append((unique_list1[chunk_size * process: chunk_size * (process + 1)], unique_list2, term_counts, GO_DAG_FILE_PATH, highest_ic_anc, similarity_method, progress_listener))
+                chunks.append((unique_list1[chunk_size * process: chunk_size * (process + 1)], unique_list2, term_counts, GO_DAG_FILE_PATH, highest_ic_anc, similarity_method))
         for result in executor.map(compute_similarity_method, chunks):
+            progress_listener(len(result))
             sim_method_dict.update(result)
-
-    total_to_process = len(go_list1) + len(go_list2)
-    processed = 0
 
     summation_set12 = 0.0
     summation_set21 = 0.0

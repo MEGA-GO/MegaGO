@@ -203,14 +203,14 @@ def run_comparison(go_list_1, go_list_2, go_dag=None, progress=None):
 
     output = list()
 
-    total_length = len(go_list_1) + len(go_list_2)
+    total_comparisons = len(set(go_list_1)) + len(set(go_list_2))
     done = 0
 
-    def progress_reporter(batch_size, processed, total):
+    def progress_reporter(batch_size):
         nonlocal done
         if progress:
             done += batch_size
-            progress(done / total_length)
+            progress(batch_size / total_comparisons)
 
     for i in range(len(GO_DOMAINS)):
         output.append(
