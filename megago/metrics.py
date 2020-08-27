@@ -172,9 +172,9 @@ def lin_metric(c1, c2, go_dag, term_counts, highest_ic_anc):
 
     Formula of the metric: (2 * info_content(mica)) / (info_content(go_id1) + info_content(go_id2))
     where mica is the most informative common ancestor of go_id1 and go_id2.
-    Metric is implemented according to: Schlicker, A., Domingues, F.S., Rahnenführer, J. et al. A new measure for
-    functional similarity of gene products based on Gene Ontology. BMC Bioinformatics 7, 302 (2006)
-    doi:10.1186/1471-2105-7-302
+
+    Metric is implemented according to: Lin, Dekang. 1998. “An Information-Theoretic Definition of Similarity.” In
+    Proceedings of the 15th International Conference on Machine Learning, 296—304.
 
 
     Parameters
