@@ -206,7 +206,7 @@ def run_comparison(go_list_1, go_list_2, go_dag=None):
             freq_dict,
             go_dag,
             highest_ic_anc,
-            similarity_method="lin"
+            similarity_method="rel"
         ) for i in range(len(GO_DOMAINS))
     )
 
