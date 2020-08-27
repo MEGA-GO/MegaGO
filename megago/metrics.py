@@ -246,7 +246,7 @@ def _do_compute_max_sim_value(go_list1, go_list2, go_dag, term_counts, highest_i
 #
 
 
-def compute_bma_metric(go_list1, go_list2, term_counts, go_dag, highest_ic_anc, similarity_method=rel_metric):
+def compute_bma_metric(go_list1, go_list2, term_counts, go_dag, highest_ic_anc, similarity_method="rel"):
     """calculate the best match average similarity of the two provided sets of go terms
 
     For each GO term in go_list1, the similarity value of the most similar term from go_list2 is picked. The sum of
@@ -266,10 +266,8 @@ def compute_bma_metric(go_list1, go_list2, term_counts, go_dag, highest_ic_anc, 
         GODag object from the goatools package
     highest_ic_anc : dict
         dictionary: key: GO terms, values: information content of the ancestor with the highest information content
-    similarity_method : function
-        function with the following arguments: id1, id2, go_dag, term_counts, highest_ic_anc
-        must return a float or the value of the global variable NAN_VALUE.
-
+    similarity_method : string
+        choose between lin and rel metric. 'lin' -> lin_metric, 'rel' -> rel_metric
 
     Returns
     -------
@@ -277,17 +275,26 @@ def compute_bma_metric(go_list1, go_list2, term_counts, go_dag, highest_ic_anc, 
 
     """
 
+    sim_func = None
+    if similarity_method == "lin":
+        sim_func = lin_metric
+    elif similarity_method == "rel":
+        sim_func = rel_metric
+    else:
+        raise AttributeError(f"similarity_method must be in ['lin', 'rel'] but is {similarity_method}")
+
     summation_set12 = 0.0
     summation_set21 = 0.0
+
     for id1 in go_list1:
         similarity_values = []
         for id2 in go_list2:
-            similarity_values.append(similarity_method(id1, id2, go_dag, term_counts, highest_ic_anc))
+            similarity_values.append(sim_func(id1, id2, go_dag, term_counts, highest_ic_anc))
         summation_set12 += max(similarity_values + [NAN_VALUE])
     for id2 in go_list2:
         similarity_values = []
         for id1 in go_list1:
-            similarity_values.append(similarity_method(id2, id1, go_dag, term_counts, highest_ic_anc))
+            similarity_values.append(sim_func(id2, id1, go_dag, term_counts, highest_ic_anc))
         summation_set21 += max(similarity_values + [NAN_VALUE])
     if (len(go_list1) + len(go_list2)) == 0:
         bma = 0
