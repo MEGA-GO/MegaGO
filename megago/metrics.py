@@ -9,6 +9,7 @@ from goatools.gosubdag.gosubdag import GoSubDag
 from .constants import NAN_VALUE, GO_DAG_FILE_PATH
 
 PROCESSES = 6
+CHUNK_SIZE = 50
 
 
 def get_frequency(go_id, term_counts, go_dag):
@@ -205,19 +206,18 @@ def compute_bma_metric(go_list1, go_list2, term_counts, go_dag, highest_ic_anc, 
     unique_list1 = list(set(go_list1))
     unique_list2 = list(set(go_list2))
 
-    # First compute the similarity method for each of the pairs from the input. The similarity method must be symmetric
-    # for this to work properly.
-    chunk_size = math.ceil(len(unique_list1) / PROCESSES)
     # Store the results of the similarity method in this dictionary
     sim_method_dict = dict()
 
+    amount_of_chunks = math.ceil(len(unique_list1) / CHUNK_SIZE)
+
     with concurrent.futures.ProcessPoolExecutor(max_workers=PROCESSES) as executor:
         chunks = []
-        for process in range(PROCESSES):
-            if process == PROCESSES - 1:
-                chunks.append((unique_list1[chunk_size * process:], unique_list2, term_counts, GO_DAG_FILE_PATH, highest_ic_anc, similarity_method))
+        for process in range(amount_of_chunks):
+            if process == amount_of_chunks - 1:
+                chunks.append((unique_list1[CHUNK_SIZE * process:], unique_list2, term_counts, GO_DAG_FILE_PATH, highest_ic_anc, similarity_method))
             else:
-                chunks.append((unique_list1[chunk_size * process: chunk_size * (process + 1)], unique_list2, term_counts, GO_DAG_FILE_PATH, highest_ic_anc, similarity_method))
+                chunks.append((unique_list1[CHUNK_SIZE * process: CHUNK_SIZE * (process + 1)], unique_list2, term_counts, GO_DAG_FILE_PATH, highest_ic_anc, similarity_method))
         for result in executor.map(compute_similarity_method, chunks):
             progress_listener(len(result))
             sim_method_dict.update(result)
@@ -232,6 +232,8 @@ def compute_bma_metric(go_list1, go_list2, term_counts, go_dag, highest_ic_anc, 
             value = sim_method_dict[key]
             if value > max_value:
                 max_value = value
+        if len(go_list2) == 0:
+            max_value = NAN_VALUE
         summation_set12 += max_value
     for id2 in go_list2:
         max_value = 0.0
@@ -240,6 +242,8 @@ def compute_bma_metric(go_list1, go_list2, term_counts, go_dag, highest_ic_anc, 
             value = sim_method_dict[key]
             if value > max_value:
                 max_value = value
+        if len(go_list1) == 0:
+            max_value = NAN_VALUE
         summation_set21 += max_value
 
     if (len(go_list1) + len(go_list2)) == 0:
