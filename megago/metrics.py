@@ -158,6 +158,55 @@ def rel_metric(c1, c2, go_dag, term_counts, highest_ic_anc):
         return NAN_VALUE
 
 
+def lin_metric(c1, c2, go_dag, term_counts, highest_ic_anc):
+    """calculate semantic similarity of the GO terms id1 and id2 using the rel metric
+
+    Formula of the metric: (2 * info_content(mica)) / (info_content(go_id1) + info_content(go_id2))
+    where mica is the most informative common ancestor of go_id1 and go_id2.
+
+    Metric is implemented according to: Lin, Dekang. 1998. “An Information-Theoretic Definition of Similarity.” In
+    Proceedings of the 15th International Conference on Machine Learning, 296—304.
+
+
+    Parameters
+    ----------
+    c1 : str
+        GO term
+    c2 : str
+        GO term
+    go_dag : GODag object
+        GODag object from the goatools package
+    term_counts : dict
+        dictionary: key: GO terms, values: number of occurrences of GO term and its children in body of evidence
+
+    Returns
+    -------
+    float
+        if go_id1 and go_id2 are from different GO namespaces or either of them misses in the go_dag: NAN_VALUE
+        else: rel metric
+
+    """
+    if (c1 not in go_dag) or (c2 not in go_dag):
+        return NAN_VALUE
+
+    go_term1 = go_dag[c1]
+    go_term2 = go_dag[c2]
+    if go_term1.namespace == go_term2.namespace:
+        lca_goid = get_deepest_common_ancestor(c1, c2, go_dag)
+        info_content_lca = get_info_content(lca_goid, term_counts, go_dag)
+        info_content1 = get_info_content(c1, term_counts, go_dag)
+        info_content2 = get_info_content(c2, term_counts, go_dag)
+        if info_content1 == 0:
+            info_content1 = highest_ic_anc[c1]
+        if info_content2 == 0:
+            info_content2 = highest_ic_anc[c2]
+        if info_content1 + info_content2 == 0:
+            return 0
+        return (2 * info_content_lca) / (info_content1 + info_content2)
+    else:    # if goterms are from different GO namespaces (molecular function, cellular component, biological process)
+        return NAN_VALUE
+
+
 def compute_similarity_method(params):
     (go_list1, go_list2, term_counts, go_dag_path, highest_ic_anc, similarity_method) = params
     go_dag = GODag(GO_DAG_FILE_PATH, prt=open(os.devnull, 'w'))
@@ -170,7 +219,7 @@ def compute_similarity_method(params):
     return result
 
 
-def compute_bma_metric(go_list1, go_list2, term_counts, go_dag, highest_ic_anc, progress_listener=None, similarity_method=rel_metric):
+def compute_bma_metric(go_list1, go_list2, term_counts, highest_ic_anc, progress_listener=None, similarity_method="rel"):
     """calculate the best match average similarity of the two provided sets of go terms
 
     For each GO term in go_list1, the similarity value of the most similar term from go_list2 is picked. The sum of
@@ -186,16 +235,12 @@ def compute_bma_metric(go_list1, go_list2, term_counts, go_dag, highest_ic_anc, 
         iterable, containing go term strings
     term_counts : dict
         dictionary: key: GO terms, values: number of occurrences of GO term and its children in body of evidence
-    go_dag : GODag object
-        GODag object from the goatools package
     highest_ic_anc : dict
         dictionary: key: GO terms, values: information content of the ancestor with the highest information content
     progress_listener: function (number) => void
         is called with comparisons that currently have been performed
-    similarity_method : function
-        function with the following arguments: id1, id2, go_dag, term_counts, highest_ic_anc
-        must return a float or the value of the global variable NAN_VALUE.
-
+    similarity_method : string
+        choose between lin and rel metric. 'lin' -> lin_metric, 'rel' -> rel_metric
 
     Returns
     -------
@@ -211,16 +256,25 @@ def compute_bma_metric(go_list1, go_list2, term_counts, go_dag, highest_ic_anc, 
 
     amount_of_chunks = math.ceil(len(unique_list1) / CHUNK_SIZE)
 
+    sim_func = None
+    if similarity_method == "lin":
+        sim_func = lin_metric
+    elif similarity_method == "rel":
+        sim_func = rel_metric
+    else:
+        raise AttributeError(f"similarity_method must be in ['lin', 'rel'] but is {similarity_method}")
+
     with concurrent.futures.ProcessPoolExecutor(max_workers=PROCESSES) as executor:
         chunks = []
         for process in range(amount_of_chunks):
             if process == amount_of_chunks - 1:
-                chunks.append((unique_list1[CHUNK_SIZE * process:], unique_list2, term_counts, GO_DAG_FILE_PATH, highest_ic_anc, similarity_method))
+                chunks.append((unique_list1[CHUNK_SIZE * process:], unique_list2, term_counts, GO_DAG_FILE_PATH, highest_ic_anc, sim_func))
             else:
-                chunks.append((unique_list1[CHUNK_SIZE * process: CHUNK_SIZE * (process + 1)], unique_list2, term_counts, GO_DAG_FILE_PATH, highest_ic_anc, similarity_method))
+                chunks.append((unique_list1[CHUNK_SIZE * process: CHUNK_SIZE * (process + 1)], unique_list2, term_counts, GO_DAG_FILE_PATH, highest_ic_anc, sim_func))
         for result in executor.map(compute_similarity_method, chunks):
             progress_listener(len(result))
             sim_method_dict.update(result)
+
 
     summation_set12 = 0.0
     summation_set21 = 0.0

@@ -185,6 +185,8 @@ def run_comparison(go_list_1, go_list_2, go_dag=None, progress=None):
         All GO-terms present in the first sample.
     go_list_2 : a list with GO-identifiers as strings
         All GO-terms present in the second sample.
+    go_dag : GODag object
+        GODag object from the goatools package
 
     Returns
     -------
@@ -218,9 +220,9 @@ def run_comparison(go_list_1, go_list_2, go_dag=None, progress=None):
                 split_per_domain_1[i],
                 split_per_domain_2[i],
                 freq_dict,
-                go_dag,
                 highest_ic_anc,
-                progress_reporter
+                progress_reporter,
+                similarity_method="lin"
             )
         )
 

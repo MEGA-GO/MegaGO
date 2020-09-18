@@ -1,23 +1,23 @@
 ID,set1,set2,expected_biological_process,expected_cellular_component,expected_molecular_function
-one level higher 1,GO:0030170,GO:0070279,0.0,0.0,0.9891598232064736
-one level higher 2,GO:0019842,GO:0036094,0.0,0.0,0.33563057060309276
-one level higher 3,GO:0030170,GO:0043168,0.0,0.0,0.33877743862689497
-two levels higher 1,GO:0030170,GO:0043167,0.0,0.0,0.16645336402284938
-two levels higher 2,GO:0030170,GO:0036094,0.0,0.0,0.31049772969269235
-two levels higher 3,GO:0070279,GO:0036094,0.0,0.0,0.31052926560026284
+one level higher 1,GO:0030170,GO:0070279,0.0,0.0,0.9999351409996573
+one level higher 2,GO:0019842,GO:0036094,0.0,0.0,0.4692505687974348
+one level higher 3,GO:0030170,GO:0043168,0.0,0.0,0.45800877009981067
+two levels higher 1,GO:0030170,GO:0043167,0.0,0.0,0.3013410567868916
+two levels higher 2,GO:0030170,GO:0036094,0.0,0.0,0.4341119344605537
+two levels higher 3,GO:0070279,GO:0036094,0.0,0.0,0.4341560253267057
 four levels higher,GO:0030170,GO:0003674,0.0,0.0,0.0
 two unrelated bindings (MF vs BP) 1,GO:0050662,GO:0001844,nan,0.0,nan
 two unrelated bindings (MF vs CC),GO:1903876,GO:0097524,0.0,nan,nan
 two unrelated bindings (MF vs BP) 2,GO:1903876,GO:0048290,nan,0.0,nan
-same level bindings (unrel) 1,GO:0043168;GO:0050662,GO:0050662;GO:0070279,0.0,0.0,0.49587563277412244
-same level bindings (unrel) 2,GO:0048038;GO:0050662,GO:0043295;GO:0031419,0.0,0.0,0.3783582162438666
-same level bindings (unrel) 3,GO:0001913;GO:0042267,GO:0070942;GO:0090634,0.898250923654065,0.0,0.0
-two children of parent 1,GO:0005488,GO:0048037;GO:0036094,0.0,0.0,0.11295263352259766
-two children of parent 2,GO:0098581,GO:0032490;GO:0098543,0.9640132009918313,0.0,0.0
-two children of parent (BP),GO:0050789,GO:0030155;GO:0031341,0.3681307979823229,0.0,0.0
-two children of binding VS two other children of binding,GO:0048037;GO:0036094,GO:1901363;GO:0097159,0.0,0.0,0.09699230064168216
+same level bindings (unrel) 1,GO:0043168;GO:0050662,GO:0050662;GO:0070279,0.0,0.0,0.5705441397363766
+same level bindings (unrel) 2,GO:0048038;GO:0050662,GO:0043295;GO:0031419,0.0,0.0,0.4206081016597252
+same level bindings (unrel) 3,GO:0001913;GO:0042267,GO:0070942;GO:0090634,0.8985352063919589,0.0,0.0
+two children of parent 1,GO:0005488,GO:0048037;GO:0036094,0.0,0.0,0.380532303385894
+two children of parent 2,GO:0098581,GO:0032490;GO:0098543,0.9642063715145586,0.0,0.0
+two children of parent (BP),GO:0050789,GO:0030155;GO:0031341,0.4538634724390884,0.0,0.0
+two children of binding VS two other children of binding,GO:0048037;GO:0036094,GO:1901363;GO:0097159,0.0,0.0,0.3267626652236698
 two children of biological process VS two other children of biological process,GO:0001906;GO:0009758,GO:0019740;GO:0098743,0.0,0.0,0.0
 one report; other not (BP),GO:0051712,,nan,0.0,0.0
-report specific; vs specific + parents,GO:0097159,GO:0097159;GO:0005488;GO:0003674,0.0,0.0,0.3038198818835536
+report specific; vs specific + parents,GO:0097159,GO:0097159;GO:0005488;GO:0003674,0.0,0.0,0.6654328927440821
 one report; other not,GO:0030170,,0.0,0.0,nan
 unrelated (GTPase activity) vs binding (PPB) activity,GO:0030170,GO:0003924,0.0,0.0,0.0
