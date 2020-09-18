@@ -11,7 +11,7 @@
         analysis process.
         <div class="text-h4 mt-4">Similarities</div>
         Since GO terms that originate from different GO domains cannot be directly compared, we provide you with 3
-        different similarity values: one for each GO domain.
+        different similarity scores: one for each GO domain.
         <div class="d-flex justify-space-between mt-4">
             <v-card style="width: 300px; height: 300px;" class="mr-8">
                 <div class="d-flex flex-column" style="height: 100%;">
@@ -20,7 +20,7 @@
                         <img src="./../assets/biological_process.svg" alt="biological process icon" style="height: 150px;"/>
                         <v-avatar :color="colorScale($store.getters.similarities.biologicalProcess)" size="60" class="mt-4">
                             <span class="white--text headline">
-                                {{ Math.round($store.getters.similarities.biologicalProcess * 100) }}%
+                                {{ $store.getters.similarities.biologicalProcess.toFixed(2) }}
                             </span>
                         </v-avatar>
                     </v-card-text>
@@ -34,7 +34,7 @@
                         <img src="./../assets/cellular_component.svg" alt="cellular component icon" style="height: 150px;"/>
                         <v-avatar :color="colorScale($store.getters.similarities.cellularComponent)" size="60" class="mt-4">
                             <span class="white--text headline">
-                                {{ Math.round($store.getters.similarities.cellularComponent * 100) }}%
+                                {{ $store.getters.similarities.cellularComponent.toFixed(2) }}
                             </span>
                         </v-avatar>
                     </v-card-text>
@@ -49,7 +49,7 @@
                             <img src="./../assets/molecular_function.svg" alt="molecular function icon" style="height: 150px;"/>
                             <v-avatar :color="colorScale($store.getters.similarities.molecularFunction)" size="60" class="mt-4">
                                 <span class="white--text headline">
-                                    {{ Math.round($store.getters.similarities.molecularFunction * 100) }}%
+                                    {{ $store.getters.similarities.molecularFunction.toFixed(2) }}
                                 </span>
                             </v-avatar>
                         </v-card-text>

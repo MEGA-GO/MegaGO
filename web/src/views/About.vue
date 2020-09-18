@@ -3,8 +3,8 @@
         <div>
             <div class="text-h3">About us</div>
             <p class="text-body-1">
-                Mega GO is a project that aims at comparing two sets of GO terms and started initially at the EuBIC
-                conference in Nyborg, Denmark (2020). The Mega GO project aims to provide users with a measure that
+                MegaGO is a project that aims at comparing two sets of GO terms and started initially at the EuBIC
+                conference in Nyborg, Denmark (2020). The MegaGO project aims to provide users with a measure that
                 indicates how similar two sets of GO terms are to each other.
             </p>
             <div class="text-h4">Our team</div>
@@ -42,7 +42,11 @@
                         <team-card name="Wassim Gabriel" affiliation="Technische Universität München, Germany"></team-card>
                     </v-col>
                     <v-col :md="4" :sm="12">
-                        <team-card name="Michał Burdukiewicz" affiliation="Warsaw University of Technology, Poland"></team-card>
+                        <team-card
+                            name="Michał Burdukiewicz"
+                            affiliation="Warsaw University of Technology, Poland"
+                            :profile-picture="require('./../assets/michal_profile.jpeg')">
+                        </team-card>
                     </v-col>
                     <v-col :md="4" :sm="12">
                         <team-card

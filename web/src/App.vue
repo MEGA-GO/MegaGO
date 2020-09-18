@@ -2,13 +2,13 @@
     <v-app>
         <v-app-bar app color="primary" dark>
             <v-app-bar-nav-icon @click="navigationDrawer = !navigationDrawer"></v-app-bar-nav-icon>
-            <v-toolbar-title>Mega GO</v-toolbar-title>
+            <v-toolbar-title>MegaGO</v-toolbar-title>
         </v-app-bar>
         <v-navigation-drawer app v-model="navigationDrawer">
             <v-list-item>
                 <v-list-item-content>
                     <v-list-item-title class="title">
-                        Mega GO
+                        MegaGO
                     </v-list-item-title>
                     <v-list-item-subtitle>
                         Compute similarity
@@ -48,7 +48,7 @@
                 </v-btn>
                 <v-divider class="my-2"></v-divider>
                 <div>
-                    {{ new Date().getFullYear() }} — <strong>The Mega GO Project</strong>
+                    {{ new Date().getFullYear() }} — <strong>The MegaGO Project</strong>
                 </div>
             </div>
         </v-footer>
