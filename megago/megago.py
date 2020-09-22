@@ -187,6 +187,8 @@ def run_comparison(go_list_1, go_list_2, go_dag=None, progress=None):
         All GO-terms present in the second sample.
     go_dag : GODag object
         GODag object from the goatools package
+    progress : function (number) => void
+        is called with the current progress value (a floating point value between 0 and 1)
 
     Returns
     -------

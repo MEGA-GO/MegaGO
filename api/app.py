@@ -39,7 +39,6 @@ def analyze():
 @app.route('/progress/<id>', methods=["POST"])
 @cross_origin()
 def progress(id):
-    print(RESULTS)
     if id in RESULTS:
         return {
             "progress": RESULTS[id]["progress"]
