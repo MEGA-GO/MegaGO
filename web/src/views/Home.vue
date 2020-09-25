@@ -3,7 +3,7 @@
         <div>
             <div class="text-h3">Welcome</div>
             <p class="text-body-1">
-                The Mega GO project aims to provide users with a measure that indicates how similar two sets of GO terms
+                The MegaGO project aims to provide users with a measure that indicates how similar two sets of GO terms
                 are to each other. Head over <router-link to="/analysis">to the analysis page</router-link> to get
                 started. This is the web based version of our project that computes the similarity score for your GO
                 terms of choice remotely in our cloud. If you however want to compute similarities in bulk or offline,
@@ -11,8 +11,8 @@
                 executing `pip install megago`.
             </p>
             <p class="text-body-1">
-                Mega GO is completely open source and can be found on GitHub. All pull requests or suggestions are
-                welcome. If you encounter a problem while using Mega GO you are welcome to open
+                MegaGO is completely open source and can be found on GitHub. All pull requests or suggestions are
+                welcome. If you encounter a problem while using MegaGO you are welcome to open
                 <a href="https://github.com/MEGA-GO/Mega-GO/issues">a new issue</a> in our repository and we'll do our
                 best to take a look and resolve the issue as soon as possible. Make sure to check that a similar issue
                 has not been reported before.

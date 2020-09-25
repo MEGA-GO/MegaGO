@@ -27,7 +27,12 @@
         </v-row>
         <v-row>
             <div class="d-flex justify-center" style="width: 100%;">
-                <v-btn large :loading="loading" color="primary" @click="startAnalysis" :disabled="loading">
+                <v-progress-linear v-if="loading" :value="$store.getters.progress * 100" height="25">
+                    <template v-slot="{ value }">
+                        <strong>{{ Math.ceil(value) }}%</strong>
+                    </template>
+                </v-progress-linear>
+                <v-btn large v-else color="primary" @click="startAnalysis" :disabled="loading">
                     <v-icon large dark class="mr-2">mdi-play-circle</v-icon>
                     Analyze!
                 </v-btn>
@@ -61,14 +66,14 @@ export default class Analyse extends Vue {
     @Watch("goList1")
     private onGoList1Changed(newValue: string, oldValue: string) {
         if (oldValue !== newValue) {
-            this.$store.dispatch("updateGoList1", newValue.split("\n"));
+            this.$store.dispatch("updateGoList1", newValue.trimEnd().split("\n"));
         }
     }
 
     @Watch("goList2")
     private onGoList2Changed(newValue: string, oldValue: string) {
         if (oldValue !== newValue) {
-            this.$store.dispatch("updateGoList2", newValue.split("\n"));
+            this.$store.dispatch("updateGoList2", newValue.trimEnd().split("\n"));
         }
     }
 
