@@ -3,7 +3,7 @@ import SimilarityResponse from "@/logic/network/SimilarityResponse";
 import GoTerm from "@/logic/entities/GoTerm";
 
 export default class APICommunicator {
-    public static readonly BASE_URL: string = "http://localhost:5000";
+    public static readonly BASE_URL: string = "/api";
 
     public static async computeSimilarities(go1: string[], go2: string): Promise<string> {
         const result = await axios.post(`${APICommunicator.BASE_URL}/analyze`, {
