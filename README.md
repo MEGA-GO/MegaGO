@@ -46,11 +46,11 @@ megago functional_tests/testdata/example_input-compare_goa.csv
 Mega-GO calculates the similarity between GO terms with the relevance semantic similarity (sim<sub>Rel</sub>) metric
 <sup>[1](#myfootnote1)</sup>.
 
-<img src="https://latex.codecogs.com/svg.latex?sim_{lin}(go_1,%20go_2)%20=%20\frac{2IC(l)}{%20IC%20(go_1)%20%20+%20IC%20(go_2)%20}" />
+<img src="https://latex.codecogs.com/svg.latex?sim_{lin}(go_1,%20go_2)%20=%20\frac{2IC(MICA)}{%20IC%20(go_1)%20%20+%20IC%20(go_2)%20}" />
 
 where:
 
- - *l*: lowest common ancestor.
+ - *MICA*: most informative common ancestor.
  - *IC(go<sub>i</sub>)*: information content of the term *go<sub>i</sub>*.
 
 The information content of a go term is calculated as follows: <img src="https://latex.codecogs.com/svg.latex?IC(go_i)%20=%20\log{p(go_i)}" />
