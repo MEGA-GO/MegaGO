@@ -46,14 +46,16 @@ megago functional_tests/testdata/example_input-compare_goa.csv
 Mega-GO calculates the similarity between GO terms with the relevance semantic similarity (sim<sub>Rel</sub>) metric
 <sup>[1](#myfootnote1)</sup>.
 
-<img src="https://latex.codecogs.com/gif.latex?sim_{rel}(go_1,&space;go_2)&space;=&space;\frac{2\log&space;{&space;(p(l))&space;}&space;}{&space;\log&space;{&space;(go_1)&space;}&space;&plus;&space;\log&space;{&space;(go_2)&space;}&space;}&space;\times&space;(1&space;-&space;p(l))" title="sim_{rel}(go_1, go_2) = \frac{2\log { (p(l)) } }{ \log { (go_1) } + \log { (go_2) } } \times (1 - p(l))" />
+<img src="https://latex.codecogs.com/svg.latex?sim_{lin}(go_1,%20go_2)%20=%20\frac{2IC(MICA)}{%20IC%20(go_1)%20%20+%20IC%20(go_2)%20}" />
 
 where:
 
- - *l*: lowest common ancestor.
- - *p<sub>1</sub>*: frequency of the term *go<sub>1</sub>*.
+ - *MICA*: most informative common ancestor.
+ - *IC(go<sub>i</sub>)*: information content of the term *go<sub>i</sub>*.
 
-The frequency of a term *go* is defined as: 
+The information content of a go term is calculated as follows: <img src="https://latex.codecogs.com/svg.latex?IC(go_i)%20=%20\log{p(go_i)}" />
+
+The frequency *p* of a term *go* is defined as: 
 
 <img src="https://latex.codecogs.com/gif.latex?p(go)&space;=&space;\frac{n_{go'}}{N}&space;|&space;go'&space;\in&space;\left\{go,&space;c&space;\right\}" title="p(go) = \frac{n_{go'}}{N} | go' \in \left\{go, c \right\}" />
 
@@ -71,7 +73,7 @@ where:
  - *m,n*: number of terms in set *g<sub>i</sub>* and *g<sub>j</sub>*, respectively
  - *sim(go<sub>1i</sub>,go<sub>2j</sub>)*: similarity between two GO terms
  
-<a name="myfootnote1">1</a>:  Schlicker, A., Domingues, F.S., Rahnenführer, J. et al. A new measure for functional similarity of gene products based on Gene Ontology. BMC Bioinformatics 7, 302 (2006) doi:10.1186/1471-2105-7-302
+<a name="myfootnote1">1</a>: Lin, Dekang. 1998. “An Information-Theoretic Definition of Similarity.” In Proceedings of the 15th International Conference on Machine Learning, 296—304.
 
 ### Interpretation
 
