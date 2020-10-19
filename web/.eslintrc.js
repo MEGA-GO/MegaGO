@@ -21,6 +21,7 @@ module.exports = {
         "no-unused-expressions": "off",
         "no-trailing-spaces": "off",
         "no-empty-function": "off",
-        "@typescript-eslint/ban-ts-ignore": "off"
+        "@typescript-eslint/ban-ts-ignore": "off",
+        "import/no-webpack-loader-syntax": "off"
     }
 }

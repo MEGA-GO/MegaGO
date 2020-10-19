@@ -17,11 +17,21 @@
         </p>
         <v-row>
             <v-col :cols="6">
-                <div class="text-h4 mb-2">Sample 1</div>
+                <div class="mb-2">
+                    <span class="text-h4">Sample 1</span>
+                    <a class="float-right" style="position: relative; top: 16px;" @click="loadSample7Data()">
+                        Use sample data
+                    </a>
+                </div>
                 <go-input-component :disabled="loading" v-model="goList1"></go-input-component>
             </v-col>
             <v-col :cols="6">
-                <div class="text-h4 mb-2">Sample 2</div>
+                <div class="mb-2">
+                    <span class="text-h4">Sample 2</span>
+                    <a class="float-right" style="position: relative; top: 16px;" @click="loadSample8Data()">
+                        Use sample data
+                    </a>
+                </div>
                 <go-input-component :disabled="loading" v-model="goList2"></go-input-component>
             </v-col>
         </v-row>
@@ -46,6 +56,8 @@ import Vue from "vue";
 import Component from "vue-class-component";
 import GoInputComponent from "@/components/GoInputComponent.vue";
 import { Watch } from "vue-property-decorator";
+import sample7 from "raw-loader!@/assets/sample7.txt";
+import sample8 from "raw-loader!@/assets/sample8.txt";
 
 @Component({
     components: { GoInputComponent }
@@ -89,6 +101,14 @@ export default class Analyse extends Vue {
             this.loading = false;
             this.errorVisible = true;
         }
+    }
+
+    private async loadSample7Data() {
+        this.goList1 = sample7;
+    }
+
+    private async loadSample8Data() {
+        this.goList2 = sample8;
     }
 }
 </script>
