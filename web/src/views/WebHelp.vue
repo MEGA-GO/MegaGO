@@ -7,7 +7,7 @@ import Vue from "vue";
 import Component from "vue-class-component";
 
 @Component
-export default class Help extends Vue {
+export default class WebHelp extends Vue {
 
 }
 </script>

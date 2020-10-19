@@ -19,14 +19,34 @@
             <v-divider></v-divider>
 
             <v-list dense nav class="py-0 mt-4">
-                <v-list-item v-for="item of links" :key="item.link" link :to="item.link">
-                    <v-list-item-icon>
-                        <v-icon>{{ item.icon }}</v-icon>
-                    </v-list-item-icon>
-                    <v-list-item-content>
-                        <v-list-item-title>{{ item.title }}</v-list-item-title>
-                    </v-list-item-content>
-                </v-list-item>
+                <div v-for="item of links" :key="item.title">
+                    <v-list-item v-if="'link' in item" link :to="item.link">
+                        <v-list-item-icon>
+                            <v-icon>{{ item.icon }}</v-icon>
+                        </v-list-item-icon>
+                        <v-list-item-content>
+                            <v-list-item-title>{{ item.title }}</v-list-item-title>
+                        </v-list-item-content>
+                    </v-list-item>
+                    <v-list-group v-else :prepend-icon="item.icon">
+                        <template v-slot:activator>
+                            <v-list-item-title>{{ item.title}}</v-list-item-title>
+                        </template>
+                        <v-list-item
+                            v-for="subitem in item.links"
+                            :key="subitem.title"
+                            link
+                            class="sublist-item"
+                            :to="subitem.link">
+                            <v-list-item-icon>
+                                <v-icon>{{ subitem.icon }}</v-icon>
+                            </v-list-item-icon>
+                            <v-list-item-content>
+                                <v-list-item-title>{{ subitem.title }}</v-list-item-title>
+                            </v-list-item-content>
+                        </v-list-item>
+                    </v-list-group>
+                </div>
             </v-list>
         </v-navigation-drawer>
         <v-main class="mx-xs-2 mx-sm-4 mx-md-16">
@@ -82,7 +102,18 @@ export default class App extends Vue {
         {
             icon: "mdi-help-circle-outline",
             title: "Help",
-            link: "/help"
+            links: [
+                {
+                    icon: "mdi-console",
+                    title: "CLI",
+                    link: "/help/cli"
+                },
+                {
+                    icon: "mdi-web",
+                    title: "Web",
+                    link: "/help/web"
+                }
+            ]
         }
     ];
 
@@ -103,5 +134,11 @@ export default class App extends Vue {
     .v-main__wrap {
         display: flex;
         justify-content: center;
+    }
+
+    .sublist-item {
+        max-width: 85%;
+        position: relative;
+        left: 15%;
     }
 </style>
