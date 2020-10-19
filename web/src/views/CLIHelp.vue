@@ -103,7 +103,6 @@
             <h4 class="mt-4">--help / -h</h4>
             Print all options for this command.
         </div>
-
     </v-container>
 </template>
 
