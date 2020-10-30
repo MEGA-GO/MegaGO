@@ -10,9 +10,9 @@ import concurrent.futures
 from goatools.obo_parser import GODag
 from progress.bar import IncrementalBar
 
-from constants import GO_DAG_FILE_PATH, HIGHEST_IC_FILE_PATH, UNIPROT_TIME_STAMP
-from precompute_frequency_counts import get_frequency_counts
-from metrics import get_ic_of_most_informative_ancestor
+from .constants import GO_DAG_FILE_PATH, HIGHEST_IC_FILE_PATH, UNIPROT_TIME_STAMP
+from .precompute_frequency_counts import get_frequency_counts
+from .metrics import get_ic_of_most_informative_ancestor
 
 # How large should the chunks be in which the list of terms for which ic needs to be computed should be divided?
 CHUNK_SIZE = 500

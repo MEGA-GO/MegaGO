@@ -3,6 +3,7 @@ name: Publish
 on:
   schedule:
     - cron: '0 0 1 * *'
+  push:
   workflow_dispatch:
 
 jobs:
@@ -11,13 +12,21 @@ jobs:
     steps:
       - name: Clone the repository
         uses: actions/checkout@v2
+      - name: Set up Python 3
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
       - name: Delete previously generated files
-        run: rm -rf megago/resources
+        run: rm -rf megago/resources && mkdir -p megago/resources
       - name: Download the most recent SwissProt associations file
         run: wget "https://www.uniprot.org/uniprot/?query=reviewed:yes&format=tab&force=true&columns=id,go-id" -O megago/resources/associations-swissprot.tab
       - name: Download the most recent GO DAG file
-        run: wget "http://purl.obolibrary.org/obo/go/go-basic.obo" -O megago/go-basic.obo
+        run: wget "http://purl.obolibrary.org/obo/go/go-basic.obo" -O megago/resources/go-basic.obo
+      - name: Install required dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
       - name: Precompute the frequency counts
-        run: cd megago && python3 precompute_frequency_counts.py
+        run: python3 -m megago.precompute_frequency_counts
       - name: Precompute the highest IC values
-        run: cd megago && python3 precompute_highest_ic.py
+        run: python3 -m megago.precompute_highest_ic

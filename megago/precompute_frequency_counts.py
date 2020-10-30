@@ -6,7 +6,7 @@ from goatools.obo_parser import GODag
 from goatools.semantic import TermCounts
 from progress.bar import IncrementalBar
 
-from constants import FREQUENCY_COUNTS_FILE_PATH, UNIPROT_TIME_STAMP, UNIPROT_ASSOCIATIONS_FILE_PATH, GO_DAG_FILE_PATH
+from .constants import FREQUENCY_COUNTS_FILE_PATH, UNIPROT_TIME_STAMP, UNIPROT_ASSOCIATIONS_FILE_PATH, GO_DAG_FILE_PATH
 
 
 def _precompute_term_frequencies():
