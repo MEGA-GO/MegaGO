@@ -12,7 +12,7 @@ FREQUENCY_COUNTS_FILE_PATH = os.path.join(DATA_DIR, "frequency_counts_uniprot.js
 GO_DAG_FILE_PATH = os.path.join(DATA_DIR, "go-basic.obo")
 
 # File that contains the UniProt associations at a specific moment in time (SwissProt)
-UNIPROT_ASSOCIATIONS_FILE_PATH = os.path.join(DATA_DIR, "associations-uniprot-sp-20200116.tab")
+UNIPROT_ASSOCIATIONS_FILE_PATH = os.path.join(DATA_DIR, "associations-swissprot.tab")
 
 # Timestamp of the downloaded UniProt associations. This timestamp is used to determine if the frequency counts
 # and information content needs to be updated.

@@ -1,0 +1,23 @@
+name: Publish
+
+on:
+  schedule:
+    - cron: '0 0 1 * *'
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone the repository
+        uses: actions/checkout@v2
+      - name: Delete previously generated files
+        run: rm -rf megago/resources
+      - name: Download the most recent SwissProt associations file
+        run: wget "https://www.uniprot.org/uniprot/?query=reviewed:yes&format=tab&force=true&columns=id,go-id" -O megago/resources/associations-swissprot.tab
+      - name: Download the most recent GO DAG file
+        run: wget "http://purl.obolibrary.org/obo/go/go-basic.obo" -O megago/go-basic.obo
+      - name: Precompute the frequency counts
+        run: cd megago && python3 precompute_frequency_counts.py
+      - name: Precompute the highest IC values
+        run: cd megago && python3 precompute_highest_ic.py
