@@ -42,7 +42,7 @@ jobs:
         id: date
         run: echo "::set-output name=date::$(wget -O - https://www.uniprot.org/downloads 2> /dev/null | grep 'uniprot.releasedate' |sed 's/^.* .\([_0-9]*\).*$/\1/' | sed 's/_/./')"
       - name: Setup correct version numbering
-        run: sed -i "s/version='\([^']*\)'/version='\1-${{ steps.date.outputs.date }}'/" setup.py
+        run: sed -i "s/version='\([^']*\)'/version='\1.${{ steps.date.outputs.date }}'/" setup.py
       - name: Generate packages for distribution
         run: python setup.py sdist bdist_wheel
       - name: Upload generated packages to PyPi
