@@ -29,10 +29,10 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
-      - name: Precompute the frequency counts
-        run: python3 -m megago.precompute_frequency_counts
-      - name: Precompute the highest IC values
-        run: python3 -m megago.precompute_highest_ic
+#      - name: Precompute the frequency counts
+#        run: python3 -m megago.precompute_frequency_counts
+#      - name: Precompute the highest IC values
+#        run: python3 -m megago.precompute_highest_ic
       - name: Install Twine (required for publishing the package on PyPi)
         run: pip install twine
       - name: Delete previously generated distributions
@@ -49,3 +49,4 @@ jobs:
         env:
           TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
+
