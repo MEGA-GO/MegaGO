@@ -10,7 +10,7 @@ import concurrent.futures
 from goatools.obo_parser import GODag
 from progress.bar import IncrementalBar
 
-from .constants import GO_DAG_FILE_PATH, HIGHEST_IC_FILE_PATH, UNIPROT_TIME_STAMP
+from .constants import GO_DAG_FILE_PATH, HIGHEST_IC_FILE_PATH
 from .precompute_frequency_counts import get_frequency_counts
 from .metrics import get_ic_of_most_informative_ancestor
 
@@ -48,7 +48,6 @@ def compute_highest_inc_parallel(terms):
             highest_ic_anc.update(result)
         bar.finish()
 
-    highest_ic_anc['db_date'] = UNIPROT_TIME_STAMP
     with open(HIGHEST_IC_FILE_PATH, 'w') as json_file:
         json.dump(highest_ic_anc, json_file)
 
@@ -61,14 +60,6 @@ def get_highest_ic():
     ic_file = open(HIGHEST_IC_FILE_PATH, 'r')
     highest_ic_anc = json.load(ic_file)
     ic_file.close()
-
-    if highest_ic_anc['db_date'] != UNIPROT_TIME_STAMP:
-        go_dag = GODag(GO_DAG_FILE_PATH, prt=open(os.devnull, 'w'))
-        compute_highest_inc_parallel(list(go_dag.keys()))
-
-        ic_file = open(HIGHEST_IC_FILE_PATH, 'r')
-        highest_ic_anc = json.load(ic_file)
-        ic_file.close()
 
     return highest_ic_anc
 

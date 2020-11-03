@@ -3,7 +3,7 @@ from goatools.anno.idtogos_reader import IdToGosReader
 from goatools.obo_parser import GODag
 from goatools.semantic import TermCounts
 import os
-from . import DATA_DIR, JSON_INDEXED_FILE_PATH, UNIPROT_TIME_STAMP, UNIPROT_ASSOCIATIONS_FILE_PATH
+from . import DATA_DIR, JSON_INDEXED_FILE_PATH, UNIPROT_ASSOCIATIONS_FILE_PATH
 
 
 def intialize_term_counts():
@@ -14,7 +14,6 @@ def intialize_term_counts():
     term_counts = TermCounts(go_dag, associations)
     for i in go_dag.values():
         go_freq_dict[i.id] = term_counts.get_count(i.id)
-    go_freq_dict['db_date'] = UNIPROT_TIME_STAMP
     # write frequency dict to JSON file
     with open(JSON_INDEXED_FILE_PATH, 'w') as json_file:
         json.dump(go_freq_dict, json_file)
