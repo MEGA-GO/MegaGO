@@ -16,7 +16,7 @@ jobs:
         with:
           python-version: 3.8
       - name: Override database files (these need to be fixed since the test values depend on the version of the dataset used)
-        run: rm -rf megago/resources && mv -R functional_tests/resources megago/resources
+        run: rm -rf megago/resources && mv functional_tests/resources/ megago/resources/
       - name: Install required dependencies on ${{ matrix.os }}
         if: matrix.os != 'windows-latest'
         run: |
