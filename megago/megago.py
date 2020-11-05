@@ -334,6 +334,7 @@ def init_logging(log_filename, verbose):
 def main():
     options = parse_args()
     init_logging(options.log, options.verbose)
+    logging.info(f"MegaGO version {PROGRAM_VERSION}")
     process(options)
     logging.info("Done!")
 

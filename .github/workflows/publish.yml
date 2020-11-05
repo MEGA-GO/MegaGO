@@ -3,7 +3,6 @@ name: Publish
 on:
   schedule:
     - cron: '0 0 1 */2 *'
-  push:
   workflow_dispatch:
 
 jobs:
