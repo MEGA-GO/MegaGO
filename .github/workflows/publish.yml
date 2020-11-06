@@ -1,0 +1,51 @@
+name: Publish
+
+on:
+  schedule:
+    - cron: '0 0 1 */2 *'
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone the repository
+        uses: actions/checkout@v2
+      - name: Set up Python 3
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
+      - name: Delete previously generated files
+        run: rm -rf megago/resources && mkdir -p megago/resources
+      - name: Download the most recent SwissProt associations file
+        run: wget "https://www.uniprot.org/uniprot/?query=reviewed:yes&format=tab&force=true&columns=id,go-id" -O megago/resources/associations-swissprot.tab
+      - name: Remove spaces after semicolons from UniProt file
+        run: sed -i "s/; /;/g" megago/resources/associations-swissprot.tab
+      - name: Download the most recent GO DAG file
+        run: wget "http://purl.obolibrary.org/obo/go/go-basic.obo" -O megago/resources/go-basic.obo
+      - name: Install required dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          pip3 install -r requirements-dev.txt
+          pip3 install wheel
+      - name: Precompute the frequency counts
+        run: python3 -m megago.precompute_frequency_counts
+      - name: Precompute the highest IC values
+        run: python3 -m megago.precompute_highest_ic
+      - name: Install Twine (required for publishing the package on PyPi)
+        run: pip3 install twine
+      - name: Delete previously generated distributions
+        run: rm -rf dist
+      - name: Get UniProt database version
+        id: date
+        run: echo "::set-output name=date::$(wget -O - https://www.uniprot.org/downloads 2> /dev/null | grep 'uniprot.releasedate' |sed 's/^.* .\([_0-9]*\).*$/\1/' | sed 's/_/./')"
+      - name: Setup correct version numbering
+        run: sed -i "s/version='\([^']*\)'/version='\1.${{ steps.date.outputs.date }}'/" setup.py
+      - name: Generate packages for distribution
+        run: python setup.py sdist bdist_wheel
+      - name: Upload generated packages to PyPi
+        run: twine upload dist/*
+        env:
+          TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
+

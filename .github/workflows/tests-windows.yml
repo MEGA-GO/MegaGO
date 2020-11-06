@@ -1,0 +1,23 @@
+name: Tests
+
+on: push
+
+jobs:
+  test:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
+      - name: Override database files (these need to be fixed since the test values depend on the version of the dataset used)
+        run: Remove-Item -Force -Recurse -Path megago/resources; Move-Item -Path functional_tests/resources/ -Destination megago/resources/
+      - name: Install required dependencies on ${{ matrix.os }}
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+          pip install -U .
+      - name: Run tests against ${{ matrix.os }}
+        run: python functional_tests/megago-test.py -v -p megago -d ./functional_tests/testdata

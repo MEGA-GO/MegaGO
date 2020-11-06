@@ -6,7 +6,7 @@ from goatools.obo_parser import GODag
 from goatools.semantic import TermCounts
 from progress.bar import IncrementalBar
 
-from .constants import FREQUENCY_COUNTS_FILE_PATH, UNIPROT_TIME_STAMP, UNIPROT_ASSOCIATIONS_FILE_PATH, GO_DAG_FILE_PATH
+from .constants import FREQUENCY_COUNTS_FILE_PATH, UNIPROT_ASSOCIATIONS_FILE_PATH, GO_DAG_FILE_PATH
 
 
 def _precompute_term_frequencies():
@@ -21,7 +21,6 @@ def _precompute_term_frequencies():
         go_freq_dict[i.id] = term_counts.get_count(i.id)
         for alt_id in i.alt_ids:
             go_freq_dict[alt_id] = term_counts.get_count(i.id)
-    go_freq_dict['db_date'] = UNIPROT_TIME_STAMP
     # write frequency dict to JSON file
     with open(FREQUENCY_COUNTS_FILE_PATH, 'w') as json_file:
         json.dump(go_freq_dict, json_file)
@@ -39,12 +38,6 @@ def get_frequency_counts():
         _precompute_term_frequencies()
 
     frequency_dict = json.load(open(FREQUENCY_COUNTS_FILE_PATH))
-
-    # Now we also have to check if the frequency dict is not outdated.
-    if frequency_dict['db_date'] != UNIPROT_TIME_STAMP:
-        _precompute_term_frequencies()
-        frequency_dict = json.load(open(FREQUENCY_COUNTS_FILE_PATH))
-
     return frequency_dict
 
 

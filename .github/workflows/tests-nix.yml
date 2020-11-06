@@ -1,0 +1,26 @@
+name: Tests
+
+on: push
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
+      - name: Override database files (these need to be fixed since the test values depend on the version of the dataset used)
+        run: rm -rf megago/resources && mv functional_tests/resources/ megago/resources/
+      - name: Install required dependencies on ${{ matrix.os }}
+        run: |
+          python3 -m pip install --upgrade pip
+          pip3 install -r requirements-dev.txt
+          pip3 install -U .
+      - name: Run tests against ${{ matrix.os }}
+        run: python3 functional_tests/megago-test.py -v -p megago -d ./functional_tests/testdata
