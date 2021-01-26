@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@types/d3-scale": "^2.2.0",
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "core-js": "^3.6.5",
     "d3-scale": "^3.2.1",
     "raw-loader": "^4.0.2",
