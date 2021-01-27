@@ -41,6 +41,9 @@ jobs:
         run: echo "::set-output name=date::$(wget -O - https://www.uniprot.org/downloads 2> /dev/null | grep 'uniprot.releasedate' |sed 's/^.* .\([_0-9]*\).*$/\1/' | sed 's/_/./')"
       - name: Setup correct version numbering
         run: sed -i "s/version='\([^']*\)'/version='\1.${{ steps.date.outputs.date }}'/" setup.py
+      - name: Get version number
+        id: version
+        run: echo "::set-output name=version::$(cat setup.py | grep 'version' | sed 's/^.*=.\(.*\).,/\1/')"
       - name: Generate packages for distribution
         run: python setup.py sdist bdist_wheel
       - name: Upload generated packages to PyPi
@@ -48,4 +51,41 @@ jobs:
         env:
           TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
-
+      - name: Get latest commit SHA
+        id: commit_sha
+        shell: bash
+        run: |
+          echo "::set-output name=sha::$(git rev-parse HEAD)"
+      - name: Create new version tag
+        uses: octokit/request-action@v2.x
+        id: create_new_tag
+        with:
+          route: POST /repos/:owner/:repo/git/tags
+          owner: unipept
+          repo: make-database
+          tag: v${{ steps.version.outputs.version }}
+          message: Update of the underlying SwissProt data to version ${{ steps.date.output.date }}
+          object: ${{ steps.commit_sha.outputs.sha }}
+          type: commit
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          release_name: MegaGO v${{ steps.date.outputs.date }}
+          draft: false
+          prerelease: false
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./dist/megago-${{ steps.version.outputs.version }}.tar.gz
+          asset_name: megago-${{ steps.version.outputs.version }}.tar.gz
+          asset_content_type: application/zip
