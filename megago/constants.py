@@ -17,4 +17,6 @@ UNIPROT_ASSOCIATIONS_FILE_PATH = os.path.join(DATA_DIR, "associations-swissprot.
 # File that contains the precomputed information content values
 HIGHEST_IC_FILE_PATH = os.path.join(DATA_DIR, "highest_ic_uniprot.json")
 
+HEATMAP_TEMPLATE = os.path.join(DATA_DIR, "heatmap_template.html")
+
 NAN_VALUE = float('nan')

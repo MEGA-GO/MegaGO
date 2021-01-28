@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Mega GO heatmap</title>
+        <script type="text/javascript" src="https://unpkg.com/unipept-heatmap@2.0.0-beta.8"></script>
+    </head>
+    <body>
+        <div class="heatmaps">
+            <div id="heatmapBp">
+            </div>
+            <div id="heatmapCc" style="display: none;">
+            </div>
+            <div id="heatmapMf" style="display: none;">
+            </div>
+        </div>
+
+        <div class="buttons" style="text-align: center;">
+            <button id="bpButton">Biological Process</button>
+            <button id="ccButton">Cellular Component</button>
+            <button id="mfButton">Molecular Function</button>
+        </div>
+
+        <script>
+            const heatmapBp = document.getElementById("heatmapBp");
+            const heatmapCc = document.getElementById("heatmapCc");
+            const heatmapMf = document.getElementById("heatmapMf");
+
+            const bpButton = document.getElementById("bpButton");
+            const ccButton = document.getElementById("ccButton");
+            const mfButton = document.getElementById("mfButton");
+
+            bpButton.addEventListener("click", () => {
+                heatmapBp.style.display = "block";
+                heatmapCc.style.display = "none";
+                heatmapMf.style.display= "none";
+            });
+
+            ccButton.addEventListener("click", () => {
+                heatmapBp.style.display = "none";
+                heatmapCc.style.display = "block";
+                heatmapMf.style.display= "none";
+            });
+
+            mfButton.addEventListener("click", () => {
+                heatmapBp.style.display = "none";
+                heatmapCc.style.display = "none";
+                heatmapMf.style.display= "block";
+            });
+
+            const rowLabels = JSON.parse(`!!ROW_LABELS!!`);
+            const colLabels = JSON.parse(`!!COL_LABELS!!`);
+
+            const bpData = JSON.parse(`!!BP_DATA!!`);
+            const ccData = JSON.parse(`!!CC_DATA!!`);
+            const mfData = JSON.parse(`!!MF_DATA!!`);
+
+            const width = window.innerWidth;
+            const height = window.innerHeight - 50;
+
+            const visualizationBp = new Heatmap.Heatmap(heatmapBp, bpData, rowLabels, colLabels, {
+                width,
+                height
+            });
+            visualizationBp.cluster();
+
+            const visualizationCc = new Heatmap.Heatmap(heatmapCc, ccData, rowLabels, colLabels, {
+                width,
+                height,
+                maxColor: "#087f23"
+            });
+            visualizationCc.cluster();
+
+            const visualizationMf = new Heatmap.Heatmap(heatmapMf, mfData, rowLabels, colLabels, {
+                width,
+                height,
+                maxColor: "#9a0007"
+            });
+            visualizationMf.cluster();
+        </script>
+    </body>
+</html>

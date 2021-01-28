@@ -19,6 +19,7 @@ from .constants import GO_DAG_FILE_PATH
 from .precompute_highest_ic import get_highest_ic
 from .metrics import compute_bma_metric
 from .precompute_frequency_counts import get_frequency_counts
+from .heatmap import generate_heatmap
 
 
 
@@ -100,16 +101,14 @@ def parse_args():
                              " extension (e.g. .png, .svg)",
                         default=None
                         )
-    parser.add_argument('sample_1',
-                        metavar='SAMPLE_1',
-                        nargs='?',
+    parser.add_argument('--heatmap',
+                        action='store_true',
+                        help="Generate an interactive heatmap for the compared samples")
+    parser.add_argument('samples',
+                        metavar='SAMPLES',
+                        nargs=argparse.REMAINDER,
                         type=str,
-                        help='Input file for sample 1')
-    parser.add_argument('sample_2',
-                        metavar='SAMPLE_2',
-                        nargs='?',
-                        type=str,
-                        help='Input file for sample 2')
+                        help='Samples that should be compared to each other')
 
     return parser.parse_args()
 
@@ -262,36 +261,43 @@ def plot_similarity(list_similarity_values):
 
 
 def process(options):
-    # The GO-terms that need to be compared can be given as a CSV-file or inline in the command as a ";" delimited
-    # string.
-    if re.match(".*\.[^.]+$", options.sample_1):
-        logging.info("Processing sample 1 from %s", options.sample_1)
-        go_list_1 = read_input(open(options.sample_1, 'r'))
-    else:
-        go_list_1 = options.sample_1.split(';')
+    samples = []
 
-    if re.match(".*\.[^.]+$", options.sample_2):
-        logging.info("Processing sample 2 from %s", options.sample_2)
-        go_list_2 = read_input(open(options.sample_2, 'r'))
-    else:
-        go_list_2 = options.sample_2.split(';')
+    for sample in options.samples:
+        # The GO-terms that need to be compared can be given as a CSV-file or inline in the command as a ";" delimited
+        # string.
+        if re.match(".*\.[^.]+$", sample):
+            logging.info("Processing sample 1 from %s", sample)
+            samples.append(read_input(open(sample, 'r')))
+        else:
+            samples.append(sample.split(';'))
 
-    results = run_comparison(go_list_1, go_list_2)
+    all_results = {}
 
-    print(HEADER)
-    lines = [HEADER]
-    for idx, domain in enumerate(GO_DOMAINS):
-        line = f"{domain},{results[idx]}"
-        print(line)
-        lines.append(line)
+    for i in range(len(samples)):
+        for j in range(i + 1, len(samples)):
+            results = run_comparison(samples[i], samples[j])
+            all_results[(i, j)] = results
 
-    csv_table_string = "\n".join(lines)
-    list_similarity_values = []
-    for l in csv_table_string.split("\n")[1:]:
-        list_similarity_values.append(float(l.split(",")[1]))
-    if options.plot_file:
-        figure = plot_similarity(list_similarity_values)
-        figure.savefig(options.plot_file)
+            print(f"Results for sample {i} and {j}")
+            print(HEADER)
+            lines = [HEADER]
+            for idx, domain in enumerate(GO_DOMAINS):
+                line = f"{domain},{results[idx]}"
+                print(line)
+                lines.append(line)
+
+            csv_table_string = "\n".join(lines)
+            list_similarity_values = []
+            for l in csv_table_string.split("\n")[1:]:
+                list_similarity_values.append(float(l.split(",")[1]))
+            if options.plot_file:
+                figure = plot_similarity(list_similarity_values)
+                figure.savefig(options.plot_file)
+
+    if options.heatmap:
+        generate_heatmap(all_results, ["Sample " + str(i) for i in range(len(samples))])
+
 
 
 def init_logging(log_filename, verbose):
