@@ -28,7 +28,7 @@
             The default usage is the following:
             <div class="monospace code-block">
                 <span class="font-weight-black">
-                    $ megago [-h] [--version] [--log LOG_FILE] [--verbose] [--plot PLOT_FILE] [SAMPLE_1] [SAMPLE_2]
+                    $ megago [-h] [--version] [--log LOG_FILE] [--verbose] [--plot PLOT_FILE] [SAMPLE_1] [SAMPLE_2] ... [SAMPLE_N]
                 </span>
             </div>
             You can directly pass two sets of GO-terms, separated by semicolons, to start the analysis. Or you can
@@ -100,6 +100,10 @@
             <h4 class="mt-4">--plot PLOT_FILE</h4>
             Generate a swarm plot of the GO similarities that were computed by this script. Requires a file argument!
             The filetype is automatically determined based on the extension used (e.g. .png, .svg, ...)
+            <h4 class="mt-4">--heatmap</h4>
+            Generate an interactive heatmap that visualises the pairwise similarities between all given samples. Note
+            that clustering has been automatically applied to these heatmaps. A "heatmap.html" will be produced in the
+            current working directory when this option has been set.
             <h4 class="mt-4">--help / -h</h4>
             Print all options for this command.
         </div>
