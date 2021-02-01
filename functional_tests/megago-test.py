@@ -97,7 +97,7 @@ def test_stdout_exit(cmd, expected_output, expected_exit_status):
     num_tests += 1
     verbose_message(f"Testing stdout and exit status: {cmd}")
     result = subprocess.run(cmd.split(" "), stdout=subprocess.PIPE)
-    output = result.stdout.decode('utf-8')
+    output = result.stdout.decode('utf-8').replace("Results for sample 0 and 1\n", "")
     exit_status = result.returncode
 
     if exit_status != expected_exit_status:
