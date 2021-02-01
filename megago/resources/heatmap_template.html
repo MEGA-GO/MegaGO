@@ -6,6 +6,10 @@
         <script type="text/javascript" src="https://unpkg.com/unipept-heatmap@2.0.0-beta.10"></script>
     </head>
     <body>
+        <h3 id="title" style="margin-bottom: 8px;">MegaGO heatmap: Biological Process</h3>
+        <div>
+            Scroll to zoom, drag mouse to move visualization around.
+        </div>
         <div class="heatmaps">
             <div id="heatmapBp"></div>
             <div id="heatmapCc" style="display: none;"></div>
@@ -33,6 +37,8 @@
 
             const downloadButton = document.getElementById("download");
 
+            const pageTitle = document.getElementById("title");
+
             const rowLabels = JSON.parse(`!!ROW_LABELS!!`);
             const colLabels = JSON.parse(`!!COL_LABELS!!`);
 
@@ -41,7 +47,11 @@
             const mfData = JSON.parse(`!!MF_DATA!!`);
 
             const width = window.innerWidth;
-            const height = window.innerHeight - 60;
+            const height = window.innerHeight - 100;
+
+            function setTitle(value) {
+                pageTitle.innerText = value;
+            }
 
             const visualizationBp = new Heatmap.Heatmap(heatmapBp, bpData, rowLabels, colLabels, {
                 width,
@@ -65,16 +75,17 @@
 
             let visibleHeatmap = visualizationBp;
 
-            function switchHeatmapListener(bpActive, ccActive, mfActive, activeHeatmap) {
+            function switchHeatmapListener(bpActive, ccActive, mfActive, activeHeatmap, titleValue) {
                 visibleHeatmap = activeHeatmap;
                 heatmapBp.style.display = bpActive ? "block" : "none";
                 heatmapCc.style.display = ccActive ? "block" : "none";
                 heatmapMf.style.display= mfActive ? "block" : "none";
+                titleValue.innerText = `MegaGO heatmap - ${titleValue}`;
             }
 
-            bpButton.addEventListener("click", () => switchHeatmapListener(true, false, false, visualizationBp));
-            ccButton.addEventListener("click", () => switchHeatmapListener(false, true, false, visualizationCc));
-            mfButton.addEventListener("click", () => switchHeatmapListener(false, false, true, visualizationMf));
+            bpButton.addEventListener("click", () => switchHeatmapListener(true, false, false, visualizationBp, "Biological Process"));
+            ccButton.addEventListener("click", () => switchHeatmapListener(false, true, false, visualizationCc, "Cellular Component"));
+            mfButton.addEventListener("click", () => switchHeatmapListener(false, false, true, visualizationMf, "Molecular Function"));
 
             function download(filename, text) {
                 const element = document.createElement('a');

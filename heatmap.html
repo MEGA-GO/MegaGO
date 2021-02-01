@@ -6,6 +6,10 @@
     <script type="text/javascript" src="https://unpkg.com/unipept-heatmap@2.0.0-beta.10"></script>
 </head>
 <body>
+<h3 id="title" style="margin-bottom: 8px;">MegaGO heatmap: Biological Process</h3>
+<div>
+    Scroll to zoom, drag mouse to move visualization around.
+</div>
 <div class="heatmaps">
     <div id="heatmapBp"></div>
     <div id="heatmapCc" style="display: none;"></div>
@@ -33,6 +37,8 @@ const mfButton = document.getElementById("mfButton");
 
 const downloadButton = document.getElementById("download");
 
+const pageTitle = document.getElementById("title");
+
 const rowLabels = JSON.parse(`["Sample 0", "Sample 1", "Sample 2", "Sample 3", "Sample 4", "Sample 5", "Sample 6", "Sample 7"]`);
 const colLabels = JSON.parse(`["Sample 0", "Sample 1", "Sample 2", "Sample 3", "Sample 4", "Sample 5", "Sample 6", "Sample 7"]`);
 
@@ -41,7 +47,7 @@ const ccData = JSON.parse(`[[1, 0.9211902278978557, 0.9343760336197924, 0.919309
 const mfData = JSON.parse(`[[1, 0.9615116445881527, 0.9662124620052925, 0.963442293541049, 0.9686444932921465, 0.972381539063541, 0.9737991008182325, 0.9683110696721705], [0.9615116445881527, 1, 0.965256036930509, 0.9671189547037646, 0.9520229291030047, 0.9630664168389975, 0.9572778290276054, 0.9658375657459272], [0.9662124620052925, 0.965256036930509, 1, 0.9682830715071631, 0.9574420568299713, 0.9615838026048259, 0.9640143093310571, 0.9626555490927512], [0.963442293541049, 0.9671189547037646, 0.9682830715071631, 1, 0.9572805419600514, 0.9642238173647392, 0.9635733699664588, 0.9676649232563385], [0.9686444932921465, 0.9520229291030047, 0.9574420568299713, 0.9572805419600514, 1, 0.9741739293954976, 0.9746191423007284, 0.9600613169642861], [0.972381539063541, 0.9630664168389975, 0.9615838026048259, 0.9642238173647392, 0.9741739293954976, 1, 0.9740931559649966, 0.9686523470200908], [0.9737991008182325, 0.9572778290276054, 0.9640143093310571, 0.9635733699664588, 0.9746191423007284, 0.9740931559649966, 1, 0.9675620379776206], [0.9683110696721705, 0.9658375657459272, 0.9626555490927512, 0.9676649232563385, 0.9600613169642861, 0.9686523470200908, 0.9675620379776206, 1]]`);
 
 const width = window.innerWidth;
-const height = window.innerHeight - 60;
+const height = window.innerHeight - 100;
 
 const visualizationBp = new Heatmap.Heatmap(heatmapBp, bpData, rowLabels, colLabels, {
     width,
@@ -65,16 +71,17 @@ visualizationMf.cluster();
 
 let visibleHeatmap = visualizationBp;
 
-function switchHeatmapListener(bpActive, ccActive, mfActive, activeHeatmap) {
+function switchHeatmapListener(bpActive, ccActive, mfActive, activeHeatmap, titleValue) {
     visibleHeatmap = activeHeatmap;
     heatmapBp.style.display = bpActive ? "block" : "none";
     heatmapCc.style.display = ccActive ? "block" : "none";
-    heatmapMf.style.display = mfActive ? "block" : "none";
+    heatmapMf.style.display= mfActive ? "block" : "none";
+    titleValue.innerText = `MegaGO heatmap - ${titleValue}`;
 }
 
-bpButton.addEventListener("click", () => switchHeatmapListener(true, false, false, visualizationBp));
-ccButton.addEventListener("click", () => switchHeatmapListener(false, true, false, visualizationCc));
-mfButton.addEventListener("click", () => switchHeatmapListener(false, false, true, visualizationMf));
+bpButton.addEventListener("click", () => switchHeatmapListener(true, false, false, visualizationBp, "Biological Process"));
+ccButton.addEventListener("click", () => switchHeatmapListener(false, true, false, visualizationCc, "Cellular Component"));
+mfButton.addEventListener("click", () => switchHeatmapListener(false, false, true, visualizationMf, "Molecular Function"));
 
 function download(filename, text) {
     const element = document.createElement("a");
