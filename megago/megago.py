@@ -262,12 +262,14 @@ def plot_similarity(list_similarity_values):
 
 def process(options):
     samples = []
+    sample_names = []
 
     for sample in options.samples:
         # The GO-terms that need to be compared can be given as a CSV-file or inline in the command as a ";" delimited
         # string.
         if re.match(".*\.[^.]+$", sample):
             logging.info("Processing sample 1 from %s", sample)
+            sample_names.append(sample)
             samples.append(read_input(open(sample, 'r')))
         else:
             samples.append(sample.split(';'))
@@ -296,7 +298,7 @@ def process(options):
                 figure.savefig(options.plot_file)
 
     if options.heatmap:
-        generate_heatmap(all_results, ["Sample " + str(i) for i in range(len(samples))])
+        generate_heatmap(all_results, sample_names if len(sample_names) == len(samples) else ["Sample " + str(i) for i in range(len(samples))])
 
 
 

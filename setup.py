@@ -24,7 +24,8 @@ setup(
         "resources/associations-uniprot-sp-20200116.tab",
         "resources/go-basic.obo",
         "resources/frequency_counts_uniprot.json",
-        "resources/highest_ic_uniprot.json"
+        "resources/highest_ic_uniprot.json",
+        "resources/heatmap_template.html"
     ]},
     entry_points={
         'console_scripts': ['megago = megago.megago:main']

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Mega GO heatmap</title>
+    <script type="text/javascript" src="https://unpkg.com/unipept-heatmap@2.0.0-beta.10"></script>
+</head>
+<body>
+<div class="heatmaps">
+    <div id="heatmapBp"></div>
+    <div id="heatmapCc" style="display: none;"></div>
+    <div id="heatmapMf" style="display: none;"></div>
+</div>
+
+<div class="buttons" style="text-align: center;">
+    <button id="bpButton">Biological Process</button>
+    <button id="ccButton">Cellular Component</button>
+    <button id="mfButton">Molecular Function</button>
+</div>
+
+<div class="actions" style="text-align: center; padding-top: 4px;">
+    <button id="download">Download as SVG</button>
+</div>
+
+<script>
+const heatmapBp = document.getElementById("heatmapBp");
+const heatmapCc = document.getElementById("heatmapCc");
+const heatmapMf = document.getElementById("heatmapMf");
+
+const bpButton = document.getElementById("bpButton");
+const ccButton = document.getElementById("ccButton");
+const mfButton = document.getElementById("mfButton");
+
+const downloadButton = document.getElementById("download");
+
+const rowLabels = JSON.parse(`["Sample 0", "Sample 1", "Sample 2", "Sample 3", "Sample 4", "Sample 5", "Sample 6", "Sample 7"]`);
+const colLabels = JSON.parse(`["Sample 0", "Sample 1", "Sample 2", "Sample 3", "Sample 4", "Sample 5", "Sample 6", "Sample 7"]`);
+
+const bpData = JSON.parse(`[[1, 0.9511709646491856, 0.9540596988203789, 0.9546441279318496, 0.9522462241876226, 0.9564382860337538, 0.9510502475180435, 0.9592422859846252], [0.9511709646491856, 1, 0.9468330818220971, 0.945531710915185, 0.9352609027296439, 0.9457213763982955, 0.9371073487207416, 0.9536802066611411], [0.9540596988203789, 0.9468330818220971, 1, 0.9524079921507974, 0.9435960977884602, 0.9509022237642997, 0.9479832253069304, 0.9549884288526749], [0.9546441279318496, 0.945531710915185, 0.9524079921507974, 1, 0.9449670179279825, 0.9517790575737519, 0.9458532266303377, 0.9569209125348977], [0.9522462241876226, 0.9352609027296439, 0.9435960977884602, 0.9449670179279825, 1, 0.9555235381247044, 0.9555610234324873, 0.943290716366294], [0.9564382860337538, 0.9457213763982955, 0.9509022237642997, 0.9517790575737519, 0.9555235381247044, 1, 0.9527668094294949, 0.9528885696631242], [0.9510502475180435, 0.9371073487207416, 0.9479832253069304, 0.9458532266303377, 0.9555610234324873, 0.9527668094294949, 1, 0.9462638168887199], [0.9592422859846252, 0.9536802066611411, 0.9549884288526749, 0.9569209125348977, 0.943290716366294, 0.9528885696631242, 0.9462638168887199, 1]]`);
+const ccData = JSON.parse(`[[1, 0.9211902278978557, 0.9343760336197924, 0.9193090300024874, 0.9384457907738857, 0.922024968281657, 0.936162800943654, 0.9207150200294566], [0.9211902278978557, 1, 0.9337899085169843, 0.9094278098646122, 0.9083623807006187, 0.9039142781397811, 0.9243704387005657, 0.9284471532701012], [0.9343760336197924, 0.9337899085169843, 1, 0.9272176770748117, 0.9142985365876407, 0.9262128516619728, 0.9379220860037747, 0.9351640555162662], [0.9193090300024874, 0.9094278098646122, 0.9272176770748117, 1, 0.9130004653439143, 0.9093596960657009, 0.9150095904849151, 0.9127847043752647], [0.9384457907738857, 0.9083623807006187, 0.9142985365876407, 0.9130004653439143, 1, 0.9132072167703796, 0.9331230768957371, 0.9061135238258619], [0.922024968281657, 0.9039142781397811, 0.9262128516619728, 0.9093596960657009, 0.9132072167703796, 1, 0.9351840408273583, 0.9021199918125352], [0.936162800943654, 0.9243704387005657, 0.9379220860037747, 0.9150095904849151, 0.9331230768957371, 0.9351840408273583, 1, 0.9253493745215933], [0.9207150200294566, 0.9284471532701012, 0.9351640555162662, 0.9127847043752647, 0.9061135238258619, 0.9021199918125352, 0.9253493745215933, 1]]`);
+const mfData = JSON.parse(`[[1, 0.9615116445881527, 0.9662124620052925, 0.963442293541049, 0.9686444932921465, 0.972381539063541, 0.9737991008182325, 0.9683110696721705], [0.9615116445881527, 1, 0.965256036930509, 0.9671189547037646, 0.9520229291030047, 0.9630664168389975, 0.9572778290276054, 0.9658375657459272], [0.9662124620052925, 0.965256036930509, 1, 0.9682830715071631, 0.9574420568299713, 0.9615838026048259, 0.9640143093310571, 0.9626555490927512], [0.963442293541049, 0.9671189547037646, 0.9682830715071631, 1, 0.9572805419600514, 0.9642238173647392, 0.9635733699664588, 0.9676649232563385], [0.9686444932921465, 0.9520229291030047, 0.9574420568299713, 0.9572805419600514, 1, 0.9741739293954976, 0.9746191423007284, 0.9600613169642861], [0.972381539063541, 0.9630664168389975, 0.9615838026048259, 0.9642238173647392, 0.9741739293954976, 1, 0.9740931559649966, 0.9686523470200908], [0.9737991008182325, 0.9572778290276054, 0.9640143093310571, 0.9635733699664588, 0.9746191423007284, 0.9740931559649966, 1, 0.9675620379776206], [0.9683110696721705, 0.9658375657459272, 0.9626555490927512, 0.9676649232563385, 0.9600613169642861, 0.9686523470200908, 0.9675620379776206, 1]]`);
+
+const width = window.innerWidth;
+const height = window.innerHeight - 60;
+
+const visualizationBp = new Heatmap.Heatmap(heatmapBp, bpData, rowLabels, colLabels, {
+    width,
+    height
+});
+visualizationBp.cluster();
+
+const visualizationCc = new Heatmap.Heatmap(heatmapCc, ccData, rowLabels, colLabels, {
+    width,
+    height,
+    maxColor: "#087f23"
+});
+visualizationCc.cluster();
+
+const visualizationMf = new Heatmap.Heatmap(heatmapMf, mfData, rowLabels, colLabels, {
+    width,
+    height,
+    maxColor: "#9a0007"
+});
+visualizationMf.cluster();
+
+let visibleHeatmap = visualizationBp;
+
+function switchHeatmapListener(bpActive, ccActive, mfActive, activeHeatmap) {
+    visibleHeatmap = activeHeatmap;
+    heatmapBp.style.display = bpActive ? "block" : "none";
+    heatmapCc.style.display = ccActive ? "block" : "none";
+    heatmapMf.style.display = mfActive ? "block" : "none";
+}
+
+bpButton.addEventListener("click", () => switchHeatmapListener(true, false, false, visualizationBp));
+ccButton.addEventListener("click", () => switchHeatmapListener(false, true, false, visualizationCc));
+mfButton.addEventListener("click", () => switchHeatmapListener(false, false, true, visualizationMf));
+
+function download(filename, text) {
+    const element = document.createElement("a");
+    element.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(text));
+    element.setAttribute("download", filename);
+
+    element.style.display = "none";
+    document.body.appendChild(element);
+
+    element.click();
+
+    document.body.removeChild(element);
+}
+
+downloadButton.addEventListener("click", () => {
+    download("megago_heatmap.svg", visibleHeatmap.toSVG());
+});
+</script>
+</body>
+</html>
+
