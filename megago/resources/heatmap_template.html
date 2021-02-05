@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8">
         <title>Mega GO heatmap</title>
-        <script type="text/javascript" src="https://unpkg.com/unipept-heatmap@2.0.0-beta.10"></script>
+        <script type="text/javascript" src="https://unpkg.com/unipept-heatmap@2.0.0-beta.11"></script>
     </head>
     <body>
         <h3 id="title" style="margin-bottom: 8px;">MegaGO heatmap: Biological Process</h3>
@@ -55,21 +55,24 @@
 
             const visualizationBp = new Heatmap.Heatmap(heatmapBp, bpData, rowLabels, colLabels, {
                 width,
-                height
+                height,
+                dendrogramEnabled: true
             });
             visualizationBp.cluster();
 
             const visualizationCc = new Heatmap.Heatmap(heatmapCc, ccData, rowLabels, colLabels, {
                 width,
                 height,
-                maxColor: "#087f23"
+                maxColor: "#087f23",
+                dendrogramEnabled: true
             });
             visualizationCc.cluster();
 
             const visualizationMf = new Heatmap.Heatmap(heatmapMf, mfData, rowLabels, colLabels, {
                 width,
                 height,
-                maxColor: "#9a0007"
+                maxColor: "#9a0007",
+                dendrogramEnabled: true
             });
             visualizationMf.cluster();
 
