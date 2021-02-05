@@ -15,7 +15,7 @@ and is an ideal starting place for new projects.'''
 
 setup(
     name='megago',
-    version='0.4.1',
+    version='0.5.0',
     author='Henning Schiebenhoefer',
     author_email='henning.schiebenhoefer@posteo.de',
     packages=['megago'],
@@ -24,7 +24,8 @@ setup(
         "resources/associations-uniprot-sp-20200116.tab",
         "resources/go-basic.obo",
         "resources/frequency_counts_uniprot.json",
-        "resources/highest_ic_uniprot.json"
+        "resources/highest_ic_uniprot.json",
+        "resources/heatmap_template.html"
     ]},
     entry_points={
         'console_scripts': ['megago = megago.megago:main']

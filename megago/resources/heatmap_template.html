@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Mega GO heatmap</title>
+        <script type="text/javascript" src="https://unpkg.com/unipept-heatmap@2.0.0-beta.11"></script>
+    </head>
+    <body>
+        <h3 id="title" style="margin-bottom: 8px;">MegaGO heatmap: Biological Process</h3>
+        <div>
+            Scroll to zoom, drag mouse to move visualization around.
+        </div>
+        <div class="heatmaps">
+            <div id="heatmapBp"></div>
+            <div id="heatmapCc" style="display: none;"></div>
+            <div id="heatmapMf" style="display: none;"></div>
+        </div>
+
+        <div class="buttons" style="text-align: center;">
+            <button id="bpButton">Biological Process</button>
+            <button id="ccButton">Cellular Component</button>
+            <button id="mfButton">Molecular Function</button>
+        </div>
+
+        <div class="actions" style="text-align: center; padding-top: 4px;">
+            <button id="download">Download as SVG</button>
+        </div>
+
+        <script>
+            const heatmapBp = document.getElementById("heatmapBp");
+            const heatmapCc = document.getElementById("heatmapCc");
+            const heatmapMf = document.getElementById("heatmapMf");
+
+            const bpButton = document.getElementById("bpButton");
+            const ccButton = document.getElementById("ccButton");
+            const mfButton = document.getElementById("mfButton");
+
+            const downloadButton = document.getElementById("download");
+
+            const pageTitle = document.getElementById("title");
+
+            const rowLabels = JSON.parse(`!!ROW_LABELS!!`);
+            const colLabels = JSON.parse(`!!COL_LABELS!!`);
+
+            const bpData = JSON.parse(`!!BP_DATA!!`);
+            const ccData = JSON.parse(`!!CC_DATA!!`);
+            const mfData = JSON.parse(`!!MF_DATA!!`);
+
+            const width = window.innerWidth;
+            const height = window.innerHeight - 100;
+
+            function setTitle(value) {
+                pageTitle.innerText = value;
+            }
+
+            const visualizationBp = new Heatmap.Heatmap(heatmapBp, bpData, rowLabels, colLabels, {
+                width,
+                height,
+                dendrogramEnabled: true
+            });
+            visualizationBp.cluster();
+
+            const visualizationCc = new Heatmap.Heatmap(heatmapCc, ccData, rowLabels, colLabels, {
+                width,
+                height,
+                maxColor: "#087f23",
+                dendrogramEnabled: true
+            });
+            visualizationCc.cluster();
+
+            const visualizationMf = new Heatmap.Heatmap(heatmapMf, mfData, rowLabels, colLabels, {
+                width,
+                height,
+                maxColor: "#9a0007",
+                dendrogramEnabled: true
+            });
+            visualizationMf.cluster();
+
+            let visibleHeatmap = visualizationBp;
+
+            function switchHeatmapListener(bpActive, ccActive, mfActive, activeHeatmap, titleValue) {
+                visibleHeatmap = activeHeatmap;
+                heatmapBp.style.display = bpActive ? "block" : "none";
+                heatmapCc.style.display = ccActive ? "block" : "none";
+                heatmapMf.style.display= mfActive ? "block" : "none";
+                titleValue.innerText = `MegaGO heatmap - ${titleValue}`;
+            }
+
+            bpButton.addEventListener("click", () => switchHeatmapListener(true, false, false, visualizationBp, "Biological Process"));
+            ccButton.addEventListener("click", () => switchHeatmapListener(false, true, false, visualizationCc, "Cellular Component"));
+            mfButton.addEventListener("click", () => switchHeatmapListener(false, false, true, visualizationMf, "Molecular Function"));
+
+            function download(filename, text) {
+                const element = document.createElement('a');
+                element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+                element.setAttribute('download', filename);
+
+                element.style.display = 'none';
+                document.body.appendChild(element);
+
+                element.click();
+
+                document.body.removeChild(element);
+            }
+
+            downloadButton.addEventListener("click", () => {
+                download("megago_heatmap.svg", visibleHeatmap.toSVG());
+            });
+        </script>
+    </body>
+</html>
