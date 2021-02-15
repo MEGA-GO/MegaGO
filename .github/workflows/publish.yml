@@ -39,6 +39,9 @@ jobs:
       - name: Get UniProt database version
         id: date
         run: echo "::set-output name=date::$(wget -O - https://www.uniprot.org/downloads 2> /dev/null | grep 'uniprot.releasedate' |sed 's/^.* .\([_0-9]*\).*$/\1/' | sed 's/_/./')"
+      - name: Compute correct package version
+        id: version_number
+        run: echo "::set-output name=version_number::$(cat setup.py | sed -n '/version=/p' | sed 's/^.*version=.\(.*\).,$/\1/')"
       - name: Setup correct version numbering
         run: sed -i "s/version='\([^']*\)'/version='\1.${{ steps.date.outputs.date }}'/" setup.py
       - name: Generate packages for distribution
@@ -48,4 +51,37 @@ jobs:
         env:
           TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
-
+      - name: Bump the current setup file (which contains the current version number)
+        uses: test-room-7/action-update-file@v1
+        with:
+          file-path: setup.py
+          commit-msg: Bump package version to ${{ steps.date.outputs.date }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Get newly made commit sha
+        id: commit_sha
+        shell: bash
+        run: |
+          echo "::set-output name=sha::$(git rev-parse HEAD)"
+      - name: Create new tag
+        uses: octokit/request-action@v2.x
+        id: create_new_tag
+        with:
+          route: POST /repos/:owner/:repo/git/tags
+          owner: mega-go
+          repo: megago
+          tag: v${{ steps.version_number.outputs.version_number }}.${{ steps.date.outputs.date }}
+          message: "Automatic release v${{ steps.version_number.outputs.version_number }}.${{ steps.date.outputs.date }}"
+          object: ${{ steps.commit_sha.outputs.sha }}
+          type: commit
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ steps.version_number.outputs.version_number }}.${{ steps.date.outputs.date }}
+          release_name: Data release for UniProt at ${{ steps.date.outputs.date }}
+          draft: false
+          prerelease: false
