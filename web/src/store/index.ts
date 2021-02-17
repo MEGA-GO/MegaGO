@@ -22,6 +22,7 @@ export interface GoState {
     invalidTerms: string[];
     // Part of the analysis that has been done at this point.
     progress: number;
+    error: boolean;
 }
 
 const state: GoState = {
@@ -33,7 +34,8 @@ const state: GoState = {
         molecularFunction: NaN
     },
     invalidTerms: [],
-    progress: 0
+    progress: 0,
+    error: false
 };
 
 const getters: GetterTree<GoState, any> = {
@@ -55,6 +57,10 @@ const getters: GetterTree<GoState, any> = {
 
     progress(state: GoState): number {
         return state.progress;
+    },
+
+    error(state: GoState): boolean {
+        return state.error;
     }
 };
 
@@ -82,6 +88,10 @@ const mutations: MutationTree<GoState> = {
 
     UPDATE_PROGRESS(state: GoState, value: number) {
         state.progress = value;
+    },
+
+    SET_ERROR(state: GoState, error: boolean) {
+        state.error = error;
     }
 };
 
@@ -100,6 +110,8 @@ const actions: ActionTree<GoState, any> = {
      * Compute the similarities between the two sets of GO terms that are currently set.
      */
     async analyse(store: ActionContext<GoState, any>) {
+        store.commit("SET_ERROR", false);
+
         const id: string = await APICommunicator.computeSimilarities(
             store.getters.goList1,
             store.getters.goList2
@@ -109,19 +121,24 @@ const actions: ActionTree<GoState, any> = {
             // Keep requesting a progress update, until the current progress is 1. After that we can safely request the
             // computed results and continue...
             const interval = setInterval(async() => {
-                const progress = await APICommunicator.getProgress(id);
-                store.commit("UPDATE_PROGRESS", progress);
-                if (progress === 1) {
-                    const data: SimilarityResponse = await APICommunicator.getResults(id);
-                    store.commit("UPDATE_SIMILARITIES", [
-                        data.similarity.biological_process,
-                        data.similarity.cellular_component,
-                        data.similarity.molecular_function
-                    ]);
-                    store.commit("UPDATE_INVALID_TERMS", data.invalid);
+                try {
+                    const progress = await APICommunicator.getProgress(id);
+                    store.commit("UPDATE_PROGRESS", progress);
+                    if (progress === 1) {
+                        const data: SimilarityResponse = await APICommunicator.getResults(id);
+                        store.commit("UPDATE_SIMILARITIES", [
+                            data.similarity.biological_process,
+                            data.similarity.cellular_component,
+                            data.similarity.molecular_function
+                        ]);
+                        store.commit("UPDATE_INVALID_TERMS", data.invalid);
 
-                    clearInterval(interval);
-                    resolve();
+                        clearInterval(interval);
+                        resolve();
+                    }
+                } catch (error) {
+                    console.error(error);
+                    store.commit("SET_ERROR", true);
                 }
             }, 2000);
         });

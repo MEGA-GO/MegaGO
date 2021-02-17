@@ -17,7 +17,7 @@
         </v-textarea>
         <div>
             <span style="float: left;">Or <a @click="selectFile" :class="disabled ? 'disabled' : ''">upload a file</a> directly</span>
-            <span style="float: right;">{{ this.contents ? this.contents.trimEnd().split("\n").length : 0 }} GO terms in sample</span>
+            <span style="float: right;">{{ this.contents ? this.contents.trimEnd().split("\r?\n").length : 0 }} GO terms in sample</span>
         </div>
         <input type="file" ref="fileUploader" accept="text/plain, .csv" style="display:none">
     </div>

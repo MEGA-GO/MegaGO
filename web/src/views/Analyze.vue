@@ -1,7 +1,8 @@
 <template>
     <v-container fluid>
-        <v-alert type="error" v-if="errorVisible">
-            Could not complete your request. Please try again later...
+        <v-alert type="error" v-if="errorVisible || $store.getters.error">
+            Could not complete your request. Make sure that the given files are not too large (we recommend to keep
+            both input files under a 1000 terms) or try again...
         </v-alert>
 
         <div class="text-h3">Analyze</div>
@@ -71,21 +72,21 @@ export default class Analyse extends Vue {
     private errorVisible = false;
 
     private created() {
-        this.goList1 = this.$store.getters.goList1.join("\n");
-        this.goList2 = this.$store.getters.goList2.join("\n");
+        this.goList1 = this.$store.getters.goList1.join("\r?\n");
+        this.goList2 = this.$store.getters.goList2.join("\r?\n");
     }
 
     @Watch("goList1")
     private onGoList1Changed(newValue: string, oldValue: string) {
         if (oldValue !== newValue) {
-            this.$store.dispatch("updateGoList1", newValue.trimEnd().split("\n"));
+            this.$store.dispatch("updateGoList1", newValue.trimEnd().split("\r?\n"));
         }
     }
 
     @Watch("goList2")
     private onGoList2Changed(newValue: string, oldValue: string) {
         if (oldValue !== newValue) {
-            this.$store.dispatch("updateGoList2", newValue.trimEnd().split("\n"));
+            this.$store.dispatch("updateGoList2", newValue.trimEnd().split("\r?\n"));
         }
     }
 
