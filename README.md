@@ -1,3 +1,5 @@
+[![published in: Journal of Proteome Research](https://img.shields.io/badge/Published%20in%3A-Journal%20of%20Proteomic%20Research-blue.svg)](https://doi.org/10.1021/acs.jproteome.0c00926)
+
 # MegaGO
 
 ![](doc/logo.png)
