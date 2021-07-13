@@ -40,8 +40,12 @@ pip install -U .
 Execute example analysis:
 
 ```shell script
-megago functional_tests/testdata/example_input-compare_goa.csv
+megago sample7.txt sample8.txt
 ```
+
+These files can be found here:
+ * [sample7.txt](https://megago.ugent.be/samples/sample7.txt) 
+ * [sample8.txt](https://megago.ugent.be/samples/sample8.txt)
 
 ## How does it work?
 
