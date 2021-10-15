@@ -49,7 +49,7 @@ These files can be found here:
 
 ## How does it work?
 
-MegaGO calculates the similarity between GO terms with the relevance semantic similarity (sim<sub>Rel</sub>) metric
+MegaGO calculates the similarity between GO terms with the Lin semantic similarity (sim<sub>Lin</sub>) metric
 <sup>[1](#myfootnote1)</sup>.
 
 <img src="https://latex.codecogs.com/svg.latex?sim_{lin}(go_1,%20go_2)%20=%20\frac{2IC(MICA)}{%20IC%20(go_1)%20%20+%20IC%20(go_2)%20}" />
