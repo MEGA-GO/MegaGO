@@ -15,7 +15,7 @@ and is an ideal starting place for new projects.'''
 
 setup(
     name='megago',
-    version='1.0.0.2021.03',
+    version='1.0.0.2021.04',
     author='Henning Schiebenhoefer',
     author_email='henning.schiebenhoefer@posteo.de',
     packages=['megago'],
