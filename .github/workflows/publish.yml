@@ -18,7 +18,7 @@ jobs:
       - name: Delete previously generated files
         run: rm -rf megago/resources && mkdir -p megago/resources
       - name: Download the most recent SwissProt associations file
-        run: wget "https://www.uniprot.org/uniprot/?query=reviewed:yes&format=tab&force=true&columns=id,go-id" -O megago/resources/associations-swissprot.tab
+        run: wget "https://rest.uniprot.org/uniprotkb/search?fields=accession,go_id&format=tsv&query=(*)+AND+(reviewed:true)" -O megago/resources/associations-swissprot.tab
       - name: Remove spaces after semicolons from UniProt file
         run: sed -i "s/; /;/g" megago/resources/associations-swissprot.tab
       - name: Download the most recent GO DAG file
